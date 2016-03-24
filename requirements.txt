@@ -1,5 +1,5 @@
 Django==1.9.2
-PAM==0.4.2
+PAM
 Pillow==2.3.0
 Twisted-Core==13.2.0
 Twisted-Web==13.2.0
