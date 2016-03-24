@@ -12,8 +12,9 @@ from django.http import HttpResponse
 #lombardy = '8.4931,44.9026,11.4316,46.6381'
 #01/27/2016 Italia
 def twitter(request):
-    tweets_data_path = '../TwitterData010320161441.txt'
+    tweets_data_path = '../TwitterData240320161624.txt'
     tweets_file = open(tweets_data_path, "r")
+    count=0
     for line in tweets_file:
         try:
             tweet = json.loads(line)
@@ -29,3 +30,7 @@ def twitter(request):
             if tweet.get('lang'):
                tweet_db.source = tweet['lang']
             tweet_db.save()
+            count=count+1
+        except:
+            continue
+    return HttpResponse('Finished!\n' +str(count)+" Tweets loaded")
