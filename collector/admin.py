@@ -1,6 +1,6 @@
 from django.contrib import admin
-from django.models import TwitterData
+from .models import TwitterData
 
 # Register your models here.
 
-admin.site.Register(TwitterData)
+admin.site.register(TwitterData)
