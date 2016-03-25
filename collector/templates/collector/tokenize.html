@@ -1,0 +1,19 @@
+{% extends "collector/base.html" %}
+{% block title %}Twitter Elections{% endblock %}
+{% block content %}
+<div class="container">
+	<p>{{ tweet.content }}</p>
+
+	<ul class="">
+	{% for tweet_part in tweet_tokenized %}
+	    <li>{{ tweet_part }} </li>
+	{% endfor %}
+	</ul>
+
+	<ul class="">
+	{% for tweet_part in terms_stop %}
+	    <li>{{ tweet_part }} </li>
+	{% endfor %}
+	</ul>
+</div>
+{% endblock %}
