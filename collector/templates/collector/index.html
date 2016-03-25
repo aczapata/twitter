@@ -1,0 +1,14 @@
+<form action="{% url 'collector:load_tweets' %}" method="post">
+{% csrf_token %}
+<input type="submit" value="Load" />
+
+{% if tweets_list %}
+    <ul>
+    {% for tweet in tweets_list %}
+        <li><a href="{% url 'collector:detail' tweet.id %}">{{ tweet.content }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No tweets are now available.</p>
+{% endif %}
+

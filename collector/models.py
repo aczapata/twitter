@@ -14,3 +14,21 @@ class TwitterData(models.Model):
 
     def __unicode__(self):
         return "Id: " + self.tweet_id+ "  Content: " + self.content
+
+class Sentiment(models.Model):
+    
+    POSITIVE = 'POS'
+    NEGATIVE = 'NEG'
+    UNDECIDABLE = 'UND'
+    IRRELEVANT = 'IRR'
+    VOTE_CHOICES = (
+        (POSITIVE, 'Positive'),
+        (NEGATIVE, 'Negative'),
+        (UNDECIDABLE, 'Undecidable'),
+        (IRRELEVANT, 'Irrelevant'),
+    )
+    sentiment_text= models.CharField(max_length=3, choices=VOTE_CHOICES,default=UNDECIDABLE)
+    votes = models.IntegerField(default=0)
+    tweet= models.ForeignKey(TwitterData, on_delete=models.CASCADE)
+    def __unicode__(self):
+        return "Id: " + self.tweet.tweet_id+ "  Type: " + self.sentiment_text

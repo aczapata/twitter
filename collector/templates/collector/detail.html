@@ -1,0 +1,12 @@
+<h1>{{ tweet.user }}</h1>
+<p>{{ tweet.content }}</p>
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'collector:vote' tweet.id %}" method="post">
+{% csrf_token %}
+{% for choice in tweet.sentiment_set.all %}
+    <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}" />
+    <label for="choice{{ forloop.counter }}">{{ choice.sentiment_text }}</label><br />
+{% endfor %}
+<input type="submit" value="Vote" />
+</form>
