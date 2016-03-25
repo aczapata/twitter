@@ -1,7 +1,36 @@
 {% extends "collector/base.html" %}
+
 {% block title %} Twitter Elections {% endblock %}
+
 {% block content %}
 <div class="container">
-	<p>{{ common_terms.count }}</p>
+	
+	<ul>
+	{% for term in count_alt %}
+	    <li>{{ term }}</li>
+	{% endfor %}
+	</ul>
+	
+	<h1> Hashtags</h1>
+	<ul>
+	{% for term in count_hash%}
+	    <li>{{ term }}</li>
+	{% endfor %}
+	</ul>
+	
+	<h1>Except Hashtags</h1>
+	<ul>
+	{% for term in count_only%}
+	    <li>{{ term }}</li>
+	{% endfor %}
+	</ul>
+
+	<h1>Bigrams</h1>
+	<ul>
+	{% for term in count_bigrams%}
+	    <li>{{ term }}</li>
+	{% endfor %}
+	</ul>
+
 </div>
 {% endblock %}

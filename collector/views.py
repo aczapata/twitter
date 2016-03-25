@@ -9,6 +9,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse,HttpResponseRedirect
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
+from nltk import bigrams
 
 # Variables
 emoticons_str = r"""
@@ -43,19 +44,38 @@ def index(request):
 
 def tweets_tokenize(request):
     tweets_list = TwitterData.objects.all()
+    count_all = Counter()
+    count_hash = Counter()
+    count_only = Counter()
+    count_bigrams= Counter()
+        
     for tweet in tweets_list:
         # Create a list with all the terms
-        terms_all = [term for term in preprocess(tweet.content)]
         punctuation = list(string.punctuation)
-        stop = stopwords.words('english') + punctuation + ['rt', 'via']
+        stop = stopwords.words('english') + punctuation + ['rt', 'RT','via']
+
+        terms_all = [term for term in preprocess(tweet.content)]
+        terms_hash = [term for term in terms_all if term.startswith('#')]
+        terms_only = [term for term in terms_all if term not in stop and not term.startswith(('#', '@'))] 
         terms_stop = [term for term in terms_all if term not in stop]
-        count_all = Counter()
+        terms_bigram = bigrams(terms_stop)
+        
+        # Count terms only once, equivalent to Document Frequency
+        terms_single = set(terms_all)
+        
         count_all.update(terms_stop)
-        # Update the counter
-        count_all.update(terms_all)
-    common_terms = count_all.most_common(10)
-    context = {'tweets_list': tweets_list, 'count_all': count_all, 'common_terms': common_terms}
+        count_hash.update(terms_hash)
+        count_only.update(terms_only)
+        count_bigrams.update(terms_bigram)
+
+    count_all=count_all.most_common(10)
+    count_hash=count_hash.most_common(10)
+    count_only=count_only.most_common(10)   
+    count_bigrams=count_bigrams.most_common(10) 
+
+    context = {'tweets_list': tweets_list, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_bigrams': count_bigrams}
     return render(request, 'collector/statistics.html', context)
+
 
 def detail(request, tweet_id):
     tweet= get_object_or_404(TwitterData, pk=tweet_id)
