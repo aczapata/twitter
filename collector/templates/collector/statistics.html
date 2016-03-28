@@ -32,5 +32,26 @@
 	{% endfor %}
 	</ul>
 
+	<h1>Terms Max</h1>
+	<ul>
+	{% for term in terms_max%}
+	    <li>{{ term }}</li>
+	{% endfor %}
+	</ul>
+
+	<h1>Sentiment Analysis</h1>
+	<h2>Positive </h2>
+	<ul>
+	{% for term in top_pos%}
+	    <li>{{ term }}</li>
+	{% endfor %}
+	</ul>
+	<h2>Negative</h2>
+	<ul>
+	{% for term in top_neg%}
+	    <li>{{ term }}</li>
+	{% endfor %}
+	</ul>
+
 </div>
 {% endblock %}
