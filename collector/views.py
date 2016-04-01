@@ -58,6 +58,7 @@ def tweets_tokenize(request):
     tweets_list = TwitterData.objects.all()
     count_all = Counter()
     count_hash = Counter()
+    count_user = Counter()
     count_only = Counter()
     count_bigrams= Counter()
     count_single= Counter()
@@ -72,51 +73,59 @@ def tweets_tokenize(request):
 
         terms_all = [term for term in preprocess(tweet.content)]
         terms_hash = [term for term in terms_all if term.startswith('#')]
+        terms_user = [term for term in terms_all if term.startswith('@')]
         terms_only = [term for term in terms_all if term not in stop and not term.startswith(('#', '@'))] 
         terms_stop = [term for term in terms_all if term not in stop]
+
         terms_bigram = bigrams(terms_stop)
+        
         terms_single = set(terms_all)
         terms_stop_single = set(terms_stop)
 
-        for i in range(len(terms_only)-1):            
-            for j in range(i+1, len(terms_only)):
-                w1, w2 = sorted([terms_only[i], terms_only[j]])                
-                if w1 != w2:
-                    com[w1][w2] += 1
-           
-        com_max = []
-        # For each term, look for the most common co-occurrent terms
-        for t1 in com:
-           t1_max_terms = max(com[t1].items(), key=operator.itemgetter(1))[:5]
-           for t2 in t1_max_terms:
-               com_max.append(((t1, t2), com[t1][t2]))
-                # Get the most frequent co-occurrences
-     
-        # Count terms only once, equivalent to Document Frequency
-      
         count_all.update(terms_stop)
         count_hash.update(terms_hash)
+        count_user.update(terms_user)
         count_only.update(terms_only)
         count_bigrams.update(terms_bigram)
         count_single.update(terms_single)
-        count_stop_single.update(terms_stop_single)   
-    
-    p_t = {}
-    p_t_com = defaultdict(lambda : defaultdict(int))
-    n_docs=95 
+        count_stop_single.update(terms_stop_single)
+
+        for i in range(len(terms_only)-1):            
+           for j in range(i+1, len(terms_only)):
+               w1, w2 = sorted([terms_only[i], terms_only[j]])                
+               if w1 != w2:
+                   com[w1][w2] += 1
+               
+        com_max = []
+            # For each term, look for the most common co-occurrent terms
+        for t1 in com:
+           t1_max_terms = max(com[t1].items(), key=operator.itemgetter(1))[:5]
+           for t2 in t1_max_terms:
+               com_max.append(((t1, t2), com[t1][t2])) 
+        p_t = {}
+        p_t_com = defaultdict(lambda : defaultdict(int))
+        n_docs=95 
+
     for term, n in count_stop_single.items():
         p_t[term] = n / n_docs
         for t2 in com[term]:
-           p_t_com[term][t2] = com[term][t2] / n_docs
+            p_t_com[term][t2] = com[term][t2] / n_docs
 
-    pmi = defaultdict(lambda : defaultdict(int))
+    p_t_max_terms = max(p_t.items(), key=operator.itemgetter(1))[:5]
     
+    pmi = defaultdict(lambda : defaultdict(int))
+
     for t1 in p_t:
         for t2 in com[t1]:
-            denom = p_t[t1] * p_t[t2]
-            if denom != 0:
-                pmi[t1][t2] = math.log((p_t_com[t1][t2] / denom ), 2)
-     
+            try:
+               denom = p_t[t1] * p_t[t2]
+               print(p_t[t2])
+               if denom != 0:
+                    print ("success")
+                    pmi[t1][t2] = math.log((p_t_com[t1][t2] / denom ), 2)
+            except:
+               continue
+
     semantic_orientation = {}
     for term, n in p_t.items():
         positive_assoc = sum(pmi[term][tx] for tx in positive_vocab)
@@ -124,35 +133,22 @@ def tweets_tokenize(request):
         semantic_orientation[term] = positive_assoc - negative_assoc
 
     semantic_sorted = sorted(semantic_orientation.items(),key=operator.itemgetter(1),reverse=True)
-    
+
     top_pos = semantic_sorted[:10]
     top_neg = semantic_sorted[-10:]
+    
     terms_max = sorted(com_max, key=operator.itemgetter(1), reverse=True)
     terms_max2=terms_max[:10]
     count_all=count_all.most_common(10)
     count_hash=count_hash.most_common(10)
-    count_only=count_only.most_common(10)   
+    count_user=count_user.most_common(10)
+    count_only=count_only.most_common(10)
+    count_single=count_single.most_common(10)
+    count_stop_single=count_stop_single.most_common(10)    
     count_bigrams=count_bigrams.most_common(10) 
-    context = {'tweets_list': tweets_list, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_bigrams': count_bigrams, 'terms_max': terms_max2, 'top_pos':top_pos, 'top_neg':top_neg}
-    return render(request, 'collector/statistics.html', context)
-
-def search (request):
-    if ('q' in request.GET) and request.GET['q'].strip():
-        query_string= request.GET['q']
-        tweets_list = TwitterData.objects.all()
-        count_search = Counter()
-        for tweet in tweets_list:
-            terms_only = [term for term in preprocess(tweet.content) 
-                          if term not in stop 
-                          and not term.startswith(('#', '@'))]
-            if query_string in terms_only:
-                count_search.update(terms_only)
-        
-        found_entries= count_search.most_common(20)
     
-    return render_to_response('collector/statistics.html',
-                          { 'query_string': query_string, 'found_entries': found_entries },
-                          context_instance=RequestContext(request))
+    context = {'tweets_list': tweets_list, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
+    return render(request, 'collector/statistics.html', context)
 
 def detail(request, tweet_id):
     tweet= get_object_or_404(TwitterData, pk=tweet_id)
