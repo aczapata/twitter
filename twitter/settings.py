@@ -12,9 +12,18 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import dj_database_url
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
+STATIC_URL = '/static/'
+STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+
+# Extra places for collectstatic to find static files.
+STATICFILES_DIRS = (
+    os.path.join(PROJECT_ROOT, 'static'),
+)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
@@ -86,7 +95,8 @@ DATABASES = {
     }
 }
 
-
+db_from_env = dj_database_url.config()
+DATABASES['default'].update(db_from_env)
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
@@ -103,8 +113,6 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
-
-STATIC_URL = '/static/'
 
 TWITTER_API_KEY = 'LhodD09IXQPrI8IKs4nUnGi19'
 TWITTER_CONSUMER_SECRET = 'Lqf45KzYulUNBytoicaWBA4kwJqXUYN5aAQu6hCuDLQn4JtHl1'
