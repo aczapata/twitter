@@ -12,6 +12,8 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk import bigrams
 
+from .forms import UploadFileForm
+
 # Variables
 emoticons_str = r"""
     (?:
@@ -232,9 +234,8 @@ def tweet_tokenize(request,tweet_id):
     return render(request, 'collector/tokenize.html', context)
  
 
-def load_tweets(request):
-    tweets_data_path = '../TwitterData240320161624.txt'
-    tweets_file = open(tweets_data_path, "r")
+def load_tweets(tweets_file):
+    
     count=0
     for line in tweets_file:
         try:
@@ -261,3 +262,13 @@ def load_tweets(request):
             continue
 
     return HttpResponse('Finished!\n' +str(count)+" Tweets loaded")
+
+def upload_file(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            load_tweets(request.FILES['file'])
+            return HttpResponse('Finished!\n')
+    else:
+        form = UploadFileForm()
+    return render(request, 'collector/upload.html', {'form': form})
