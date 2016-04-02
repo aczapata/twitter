@@ -40,7 +40,7 @@ positive_vocab = [
     # 'triumph', 'triumphal', 'triumphant', 'victory', etc.
 ]
 negative_vocab = [
-    'bad', 'terrible', 'crap', 'useless', 'hate', ':(', ':-(',
+    'bad', 'terrible', 'crap', 'useless', 'hate', ':(', ':-(', 'racist'
     # 'defeat', etc.
 ]
 
@@ -74,8 +74,9 @@ def tweets_tokenize(request):
         terms_all = [term for term in preprocess(tweet.content)]
         terms_hash = [term for term in terms_all if term.startswith('#')]
         terms_user = [term for term in terms_all if term.startswith('@')]
-        terms_only = [term for term in terms_all if term not in stop and not term.startswith(('#', '@'))] 
         terms_stop = [term for term in terms_all if term not in stop]
+        terms_only = [term for term in terms_all if term not in stop and not term.startswith(('#', '@'))] 
+        
 
         terms_bigram = bigrams(terms_stop)
         
@@ -90,22 +91,24 @@ def tweets_tokenize(request):
         count_single.update(terms_single)
         count_stop_single.update(terms_stop_single)
 
-        for i in range(len(terms_only)-1):            
-           for j in range(i+1, len(terms_only)):
-               w1, w2 = sorted([terms_only[i], terms_only[j]])                
+        for i in range(len(terms_stop)-1):            
+           for j in range(i+1, len(terms_stop)):
+               w1, w2 = sorted([terms_stop[i], terms_stop[j]])                
                if w1 != w2:
                    com[w1][w2] += 1
+                   com[w2][w1] += 1
                
         com_max = []
             # For each term, look for the most common co-occurrent terms
         for t1 in com:
            t1_max_terms = max(com[t1].items(), key=operator.itemgetter(1))[:5]
            for t2 in t1_max_terms:
-               com_max.append(((t1, t2), com[t1][t2])) 
-        p_t = {}
-        p_t_com = defaultdict(lambda : defaultdict(int))
-        n_docs=95 
+               com_max.append(((t1, t2), com[t1][t2]))
 
+    
+    p_t = {}
+    p_t_com = defaultdict(lambda : defaultdict(int))
+    n_docs=95.0 
     for term, n in count_stop_single.items():
         p_t[term] = n / n_docs
         for t2 in com[term]:
@@ -119,9 +122,7 @@ def tweets_tokenize(request):
         for t2 in com[t1]:
             try:
                denom = p_t[t1] * p_t[t2]
-               print(p_t[t2])
                if denom != 0:
-                    print ("success")
                     pmi[t1][t2] = math.log((p_t_com[t1][t2] / denom ), 2)
             except:
                continue
@@ -189,31 +190,45 @@ def preprocess(s, lowercase=False):
 def tweet_tokenize(request,tweet_id):
     
     tweet = get_object_or_404(TwitterData, pk=tweet_id)
-    tweet_tokenized=preprocess(tweet.content)
-    terms_all = [term for term in tweet_tokenized]
+
     punctuation = list(string.punctuation)
-    stop = stopwords.words('english') + punctuation + ['rt', 'via']
+    stop = stopwords.words('english') + punctuation + ['rt', 'RT','via']
+
+    terms_all = [term for term in preprocess(tweet.content)]
+    terms_hash = [term for term in terms_all if term.startswith('#')]
+    terms_user = [term for term in terms_all if term.startswith('@')]
     terms_stop = [term for term in terms_all if term not in stop]
-    terms_only = [term for term in terms_all if term not in stop and not term.startswith(('#', '@'))]    
-    count_all = Counter()
-    count_all.update(terms_stop)
+    terms_only = [term for term in terms_all if term not in stop and not term.startswith(('#', '@'))] 
+        
+
+    terms_bigram = bigrams(terms_stop)
+        
+    terms_single = set(terms_all)
+    terms_stop_single = set(terms_stop)
+
     com = defaultdict(lambda : defaultdict(int))
-    for i in range(len(terms_only)-1):            
-            for j in range(i+1, len(terms_only)):
-                w1, w2 = sorted([terms_only[i], terms_only[j]])                
-                if w1 != w2:
-                    com[w1][w2] += 1
-           
+    for i in range(len(terms_stop)-1):            
+       for j in range(i+1, len(terms_stop)):
+           w1, w2 = sorted([terms_stop[i], terms_stop[j]])                
+           if w1 != w2:
+               com[w1][w2] += 1
+               
     com_max = []
     # For each term, look for the most common co-occurrent terms
+    for t1 in terms_stop:
+        try:
+            for t2 in com[t1]:
+                print (t1+","+t2 +":")
+        except:
+            continue
+    
+    """        
     for t1 in com:
        t1_max_terms = max(com[t1].items(), key=operator.itemgetter(1))[:5]
        for t2 in t1_max_terms:
            com_max.append(((t1, t2), com[t1][t2]))
-            # Get the most frequent co-occurrences
-    terms_max = sorted(com_max, key=operator.itemgetter(1), reverse=True)
-    terms_max = terms_max[:5]
-    context= {'tweet_tokenized': tweet_tokenized, 'terms_stop': terms_stop,'tweet': tweet, 'count_all':count_all, 'terms_max': terms_max}
+    """
+    context= {'tweet': tweet,'terms_stop': terms_stop,'terms_only': terms_only,'terms_single': terms_single,'terms_stop_single': terms_stop_single, 'com': com, 'com_max': com_max}
     return render(request, 'collector/tokenize.html', context)
  
 

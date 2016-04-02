@@ -4,23 +4,41 @@
 <div class="container">
 	<p>{{ tweet.content }}</p>
 
+
+	<h1>Terms Only</h1>
 	<ul class="">
-	{% for tweet_part in tweet_tokenized %}
+	{% for tweet_part in terms_only %}
 	    <li>{{ tweet_part }} </li>
 	{% endfor %}
 	</ul>
+	<div class="row">
+		<div class="col s12 m6 ">
+			<h1>Terms Stop</h1>
+			<ul class="">
+			{% for tweet_part in terms_stop %}
+			    <li>{{ tweet_part }} </li>
+			{% endfor %}
+			</ul>
+		</div>
+		<div class="col s12 m6 ">
+			<h1>Terms Stop Single</h1>
+			<ul class="">
+			{% for tweet_part in terms_stop_single %}
+			    <li>{{ tweet_part }} </li>
+			{% endfor %}
+			</ul>
+		</div>
+	</div>
+	
 
-	<ul class="">
-	{% for tweet_part in terms_stop %}
-	    <li>{{ tweet_part }} </li>
-	{% endfor %}
-	</ul>
 
-	<h1>Terms Max</h1>
-	<ul>
-	{% for term in terms_max%}
-	    <li>{{ term }}</li>
-	{% endfor %}
-	</ul>
+	
+	<h1> Com</h1>
+		
+	<p>{{ com }}</p>
+
+	<h1> Com_Max</h1>
+	<p>{{ com_max }}</p>
+	
 </div>
 {% endblock %}

@@ -6,6 +6,7 @@
 	{% csrf_token %}
 	<input type="submit" value="Load" />
 	</form>
+	
 	{% if tweets_list %}
 	    <ul>
 	    {% for tweet in tweets_list %}
