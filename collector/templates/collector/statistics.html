@@ -1,0 +1,79 @@
+{% extends "collector/base.html" %}
+
+{% block title %} Twitter Elections {% endblock %}
+
+{% block content %}
+<div class="container">
+	<h1>All terms</h1>
+	<ul>
+	{% for term, n in count_all %}
+	    <li>{{ term }}: {{n}}</li>
+	{% endfor %}
+	</ul>
+	
+	<h1> Hashtags</h1>
+	<ul>
+	{% for term,n in count_hash%}
+	    <li>{{ term }} : {{n}}</li>
+	{% endfor %}
+	</ul>
+
+	<h1> Users</h1>
+	<ul>
+	{% for term,n in count_user%}
+	    <li>{{ term }} : {{n}}</li>
+	{% endfor %}
+	</ul>
+	
+	<h1>Except Hashtags</h1>
+	<ul>
+	{% for term,n in count_only%}
+	    <li>{{ term }} : {{n}}</li>
+	{% endfor %}
+	</ul>
+
+	<h1>Bigrams</h1>
+	<ul>
+	{% for term, n in count_bigrams%}
+	    <li>{{ term }} : {{n}}</li>
+	{% endfor %}
+	</ul>
+
+	<h1> Single</h1>
+	<ul>
+	{% for term,n in count_single%}
+	    <li>{{ term }} : {{n}}</li>
+	{% endfor %}
+	</ul>
+
+	<h1> Stop single</h1>
+	<ul>
+	{% for term,n in count_stop_single%}
+	    <li>{{ term }} : {{n}}</li>
+	{% endfor %}
+	</ul>
+
+	<h1>Terms Max</h1>
+	<ul>
+	{% for term, n in terms_max%}
+	    <li>{{ term }} : {{n}}</li>
+	{% endfor %}
+	</ul>
+
+	
+	<h1>Sentiment Analysis</h1>
+	<h2>Positive </h2>
+	<ul>
+	{% for term in top_pos%}
+	    <li>{{ term }}</li>
+	{% endfor %}
+	</ul>
+	<h2>Negative</h2>
+	<ul>
+	{% for term in top_neg%}
+	    <li>{{ term }}</li>
+	{% endfor %}
+	</ul>
+
+</div>
+{% endblock %}

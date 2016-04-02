@@ -1,0 +1,15 @@
+{% extends "collector/base.html" %}
+{% block title %}Twitter Elections{% endblock %}
+{% block content %}
+<div class="container">
+	<p>{{ tweet.content }}</p>
+
+	<ul>
+	{% for choice in tweet.sentiment_set.all %}
+	    <li>{{ choice.sentiment_text }} -- {{ choice.votes }} vote{{ choice.votes|pluralize }}</li>
+	{% endfor %}
+	</ul>
+
+	<a href="{% url 'collector:detail' tweet.id %}">Vote again?</a>
+</div>
+{% endblock %}

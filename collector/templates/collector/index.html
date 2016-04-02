@@ -1,0 +1,20 @@
+{% extends "collector/base.html" %}
+{% block title %}Twitter Elections{% endblock %}
+{% block content %}
+<div class="container">
+	<form action="{% url 'collector:load_tweets' %}" method="post">
+	{% csrf_token %}
+	<input type="submit" value="Load" />
+	</form>
+	
+	{% if tweets_list %}
+	    <ul>
+	    {% for tweet in tweets_list %}
+	        <li><a href="{% url 'collector:detail' tweet.id %}">{{ tweet.content }}</a></li>
+	    {% endfor %}
+	    </ul>
+	{% else %}
+	    <p>No tweets are now available.</p>
+	{% endif %}
+</div>
+{% endblock %}

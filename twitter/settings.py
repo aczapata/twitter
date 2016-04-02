@@ -81,8 +81,8 @@ DATABASES = {
         'NAME': 'twitter',
         'USER': 'twitter',
         'PASSWORD': '12345',
-        'HOST': 'localhost',
-        'PORT': '',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     }
 }
 
