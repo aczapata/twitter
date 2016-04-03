@@ -2,7 +2,9 @@ import time, datetime
 import json
 import re,string,operator
 import math
-
+import plotly.plotly as py
+import plotly.graph_objs as go
+import plotly.tools as tls
 from collections import Counter,defaultdict
 from django.shortcuts import render,get_object_or_404,HttpResponse,HttpResponseRedirect
 from .models import TwitterData,Sentiment
@@ -11,8 +13,11 @@ from django.http import HttpResponse,HttpResponseRedirect
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk import bigrams
+from plotly.graph_objs import Scatter, Layout
+
 
 from .forms import UploadFileForm
+tls.set_credentials_file(username='aczapata', api_key='4x5zrxkr6n')
 
 # Variables
 emoticons_str = r"""
@@ -67,7 +72,7 @@ def tweets_tokenize(request):
     count_stop_single= Counter()
     terms_max2=[]
     com = defaultdict(lambda : defaultdict(int))
-
+    terms_lang = []
     for tweet in tweets_list:
         # Create a list with all the terms
         punctuation = list(string.punctuation)
@@ -78,6 +83,7 @@ def tweets_tokenize(request):
         terms_user = [term for term in terms_all if term.startswith('@')]
         terms_stop = [term for term in terms_all if term not in stop]
         terms_only = [term for term in terms_all if term not in stop and not term.startswith(('#', '@'))] 
+        terms_lang.append(tweet.lang)
         
 
         terms_bigram = bigrams(terms_stop)
@@ -150,8 +156,38 @@ def tweets_tokenize(request):
     count_stop_single=count_stop_single.most_common(10)    
     count_bigrams=count_bigrams.most_common(10) 
     
-    context = {'tweets_list': tweets_list, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
+
+    y_axis_pos = []
+    y_axis_neg = []
+    y_axis_total = []
+    for n1,n2 in top_pos:
+        y_axis_pos.append(n2)
+
+    y_axis_total.append((sum(y_axis_pos))/len(y_axis_pos))
+
+    for n1,n2 in top_neg:
+        y_axis_neg.append(n2)
+    
+    y_axis_total.append(abs((sum(y_axis_neg))/len(y_axis_neg)))
+    x_axis = ['positive', 'negative']  
+    x=list(Counter(terms_lang))
+    y=Counter(terms_lang).values()
+    plot = graph_plot(x_axis,y_axis_total, "Sentiment")
+    #para graficar idiomas enviamos x,y simplemente no lo puse en el html para ordenarlo despues pero sirve dont worry
+
+    context = {'tweets_list': tweets_list, 'plot': plot, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
     return render(request, 'collector/statistics.html', context)
+
+def graph_plot(x_axis,y_axis, name):
+   #Using plotly to graph with x,y parameter bar diagram
+    trace = dict(x=x_axis, y=y_axis)
+    data = [
+        go.Bar(
+            trace
+        )
+    ]
+    plot = py.plot(data, filename=name, auto_open=False)
+    return plot
 
 def detail(request, tweet_id):
     tweet= get_object_or_404(TwitterData, pk=tweet_id)
