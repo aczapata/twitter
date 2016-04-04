@@ -46,8 +46,8 @@ def load_words(file, vector=[]):
     for line in f:
         vector.append(line.split('\n')[0])
 
-load_words("/home/melissa/Documentos/twitter/static/positive-words.txt",positive_vocab)
-load_words("/home/melissa/Documentos/twitter/static/negative-words.txt",negative_vocab)
+load_words("./static/positive-words.txt",positive_vocab)
+load_words("./static/negative-words.txt",negative_vocab)
 
 
 tokens_re = re.compile(r'('+'|'.join(regex_str)+')', re.VERBOSE | re.IGNORECASE)
