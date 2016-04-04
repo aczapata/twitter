@@ -40,16 +40,17 @@ regex_str = [
     r'(?:\S)' # anything else
 ]
 
-positive_vocab = [
-    'good', 'nice', 'great', 'awesome', 'outstanding',
-    'fantastic', 'terrific', ':)', ':-)', 'like', 'love',
-    # shall we also include game-specific terms?
-    # 'triumph', 'triumphal', 'triumphant', 'victory', etc.
-]
-negative_vocab = [
-    'bad', 'terrible', 'crap', 'useless', 'hate', ':(', ':-(', 'racist'
-    # 'defeat', etc.
-]
+positive_vocab = []
+negative_vocab = []
+
+def load_words(file, vector=[]):
+    f = open(file, 'r')
+    for line in f:
+        vector.append(line.split('\n')[0])
+
+load_words("/home/melissa/Documentos/twitter/static/positive-words.txt",positive_vocab)
+load_words("/home/melissa/Documentos/twitter/static/negative-words.txt",negative_vocab)
+
 
 tokens_re = re.compile(r'('+'|'.join(regex_str)+')', re.VERBOSE | re.IGNORECASE)
 emoticon_re = re.compile(r'^'+emoticons_str+'$', re.VERBOSE | re.IGNORECASE)
