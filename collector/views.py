@@ -14,13 +14,7 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk import bigrams
 from plotly.graph_objs import Scatter, Layout
-
-
-<<<<<<< HEAD
-from .forms import UploadFileForm
-=======
 from .forms import UploadFileForm, SearchForm
->>>>>>> master
 tls.set_credentials_file(username='aczapata', api_key='4x5zrxkr6n')
 
 # Variables
