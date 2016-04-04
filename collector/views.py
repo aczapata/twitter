@@ -15,12 +15,8 @@ from nltk.corpus import stopwords
 from nltk import bigrams
 from plotly.graph_objs import Scatter, Layout
 
-
-<<<<<<< HEAD
-from .forms import UploadFileForm
-=======
 from .forms import UploadFileForm, SearchForm
->>>>>>> master
+
 tls.set_credentials_file(username='aczapata', api_key='4x5zrxkr6n')
 
 # Variables
@@ -79,10 +75,7 @@ def tweets_tokenize(request):
     terms_max2=[]
     com = defaultdict(lambda : defaultdict(int))
     terms_lang = []
-<<<<<<< HEAD
-=======
 
->>>>>>> master
     for tweet in tweets_list:
         # Create a list with all the terms
         punctuation = list(string.punctuation)
@@ -333,7 +326,7 @@ def topic_tokenize(request, query):
     context = {'tweets_list': tweets_list, 'form':form, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
     return render(request, 'collector/individual_statistics.html', context)
 
->>>>>>> master
+
 def graph_plot(x_axis,y_axis, name):
    #Using plotly to graph with x,y parameter bar diagram
     trace = dict(x=x_axis, y=y_axis)
@@ -343,11 +336,7 @@ def graph_plot(x_axis,y_axis, name):
         )
     ]
     plot = py.plot(data, filename=name, auto_open=False)
-<<<<<<< HEAD
-    return plot
-=======
     return plot    
->>>>>>> master
 
 def detail(request, tweet_id):
     tweet= get_object_or_404(TwitterData, pk=tweet_id)
