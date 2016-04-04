@@ -14,7 +14,7 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk import bigrams
 
-from .forms import UploadFileForm
+from .forms import UploadFileForm, SearchForm
 tls.set_credentials_file(username='aczapata', api_key='4x5zrxkr6n')
 
 # Variables
@@ -60,7 +60,9 @@ def index(request):
     return render(request, 'collector/index.html', context)
 
 def tweets_tokenize(request):
+
     tweets_list = TwitterData.objects.all()
+    form = SearchForm
     count_all = Counter()
     count_hash = Counter()
     count_user = Counter()
@@ -154,7 +156,7 @@ def tweets_tokenize(request):
     count_single=count_single.most_common(10)
     count_stop_single=count_stop_single.most_common(10)    
     count_bigrams=count_bigrams.most_common(10) 
-
+    """
     y_axis_pos = []
     y_axis_neg = []
     y_axis_total = []
@@ -172,10 +174,135 @@ def tweets_tokenize(request):
     y=Counter(terms_lang).values()
     plot = graph_plot(x_axis,y_axis_total, "Sentiment")
     #para graficar idiomas enviamos x,y simplemente no lo puse en el html para ordenarlo despues pero sirve dont worry
-
-    context = {'tweets_list': tweets_list, 'plot': plot, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
+    context = {'tweets_list': tweets_list, 'form':form,'plot': plot, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
+    """
+    context = {'tweets_list': tweets_list, 'form':form, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
     return render(request, 'collector/statistics.html', context)
+
+def topic_filter(request):
+    form = SearchForm(request.POST)
+    query= request.POST['text']
+    return HttpResponseRedirect(reverse('collector:ind_statistics', args=(query,)))
     
+def topic_tokenize(request, query):
+    tweets_list = TwitterData.objects.filter(content__icontains= query)
+    form = SearchForm
+    count_all = Counter()
+    count_hash = Counter()
+    count_user = Counter()
+    count_only = Counter()
+    count_bigrams= Counter()
+    count_single= Counter()
+    count_stop_single= Counter()
+    terms_max2=[]
+    com = defaultdict(lambda : defaultdict(int))
+    terms_lang = []
+
+    for tweet in tweets_list:
+        # Create a list with all the terms
+        punctuation = list(string.punctuation)
+        stop = stopwords.words('english') + punctuation + ['rt', 'RT','via']
+
+        terms_all = [term for term in preprocess(tweet.content)]
+        terms_hash = [term for term in terms_all if term.startswith('#')]
+        terms_user = [term for term in terms_all if term.startswith('@')]
+        terms_stop = [term for term in terms_all if term not in stop]
+        terms_only = [term for term in terms_all if term not in stop and not term.startswith(('#', '@'))] 
+        terms_lang.append(tweet.lang)
+        
+
+        terms_bigram = bigrams(terms_stop)
+        
+        terms_single = set(terms_all)
+        terms_stop_single = set(terms_stop)
+
+        count_all.update(terms_stop)
+        count_hash.update(terms_hash)
+        count_user.update(terms_user)
+        count_only.update(terms_only)
+        count_bigrams.update(terms_bigram)
+        count_single.update(terms_single)
+        count_stop_single.update(terms_stop_single)
+
+        for i in range(len(terms_stop)-1):            
+           for j in range(i+1, len(terms_stop)):
+               w1, w2 = sorted([terms_stop[i], terms_stop[j]])                
+               if w1 != w2:
+                   com[w1][w2] += 1
+                   com[w2][w1] += 1
+               
+        com_max = []
+            # For each term, look for the most common co-occurrent terms
+        for t1 in com:
+           t1_max_terms = max(com[t1].items(), key=operator.itemgetter(1))[:5]
+           for t2 in t1_max_terms:
+               com_max.append(((t1, t2), com[t1][t2]))
+
+    
+    p_t = {}
+    p_t_com = defaultdict(lambda : defaultdict(int))
+    n_docs=95.0 
+    for term, n in count_stop_single.items():
+        p_t[term] = n / n_docs
+        for t2 in com[term]:
+            p_t_com[term][t2] = com[term][t2] / n_docs
+
+    p_t_max_terms = max(p_t.items(), key=operator.itemgetter(1))[:5]
+    
+    pmi = defaultdict(lambda : defaultdict(int))
+
+    for t1 in p_t:
+        for t2 in com[t1]:
+            try:
+               denom = p_t[t1] * p_t[t2]
+               if denom != 0:
+                    pmi[t1][t2] = math.log((p_t_com[t1][t2] / denom ), 2)
+            except:
+               continue
+
+    semantic_orientation = {}
+    for term, n in p_t.items():
+        positive_assoc = sum(pmi[term][tx] for tx in positive_vocab)
+        negative_assoc = sum(pmi[term][tx] for tx in negative_vocab)
+        semantic_orientation[term] = positive_assoc - negative_assoc
+
+    semantic_sorted = sorted(semantic_orientation.items(),key=operator.itemgetter(1),reverse=True)
+
+    top_pos = semantic_sorted[:10]
+    top_neg = semantic_sorted[-10:]
+    
+    terms_max = sorted(com_max, key=operator.itemgetter(1), reverse=True)
+    terms_max2=terms_max[:10]
+    count_all=count_all.most_common(10)
+    count_hash=count_hash.most_common(10)
+    count_user=count_user.most_common(10)
+    count_only=count_only.most_common(10)
+    count_single=count_single.most_common(10)
+    count_stop_single=count_stop_single.most_common(10)    
+    count_bigrams=count_bigrams.most_common(10) 
+    """
+    y_axis_pos = []
+    y_axis_neg = []
+    y_axis_total = []
+    for n1,n2 in top_pos:
+        y_axis_pos.append(n2)
+
+    y_axis_total.append((sum(y_axis_pos))/len(y_axis_pos))
+
+    for n1,n2 in top_neg:
+        y_axis_neg.append(n2)
+    
+    y_axis_total.append(abs((sum(y_axis_neg))/len(y_axis_neg)))
+    x_axis = ['positive', 'negative']  
+    x=list(Counter(terms_lang))
+    y=Counter(terms_lang).values()
+    plot = graph_plot(x_axis,y_axis_total, "Sentiment")
+    #para graficar idiomas enviamos x,y simplemente no lo puse en el html para ordenarlo despues pero sirve dont worry
+    context = {'tweets_list': tweets_list, 'form':form,'plot': plot, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
+    """
+    context = {'tweets_list': tweets_list, 'form':form, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
+    return render(request, 'collector/individual_statistics.html', context)
+
 def graph_plot(x_axis,y_axis, name):
    #Using plotly to graph with x,y parameter bar diagram
     trace = dict(x=x_axis, y=y_axis)
@@ -266,7 +393,6 @@ def tweet_tokenize(request,tweet_id):
     """
     context= {'tweet': tweet,'terms_stop': terms_stop,'terms_only': terms_only,'terms_single': terms_single,'terms_stop_single': terms_stop_single, 'com': com, 'com_max': com_max}
     return render(request, 'collector/tokenize.html', context)
- 
 
 def load_tweets(tweets_file):
     
