@@ -3,7 +3,7 @@
 {% block title %} Twitter Elections {% endblock %}
 
 {% block content %}
-<div class="container">
+
 
 	<h1>Apply Filters</h1>
 		<form action="{% url 'collector:topic_filter' %}" method="post">
@@ -87,6 +87,4 @@
 	    <li>{{ term }}</li>
 	{% endfor %}
 	</ul>
-
-</div>
 {% endblock %}

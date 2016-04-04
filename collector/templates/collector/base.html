@@ -15,19 +15,12 @@
 </head>
 <body>
   <nav class="light-blue lighten-1" role="navigation">
-    <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo">Twitter Elections</a>
-      <ul class="right hide-on-med-and-down">
-        <li><a href="#">Navbar Link</a></li>
-      </ul>
-
-      <ul id="nav-mobile" class="side-nav">
-        <li><a href="#">Navbar Link</a></li>
-      </ul>
-      <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="material-icons">menu</i></a>
+    <div class="nav-wrapper container"><a id="logo-container" href="{% url 'collector:index' %}" class="brand-logo">Twitter Elections</a>
     </div>
   </nav>
+  <div class="container">
   {% block content %}{% endblock %}
-
+  </div>
   <footer class="page-footer orange">
     <div class="container">
       <div class="row">
