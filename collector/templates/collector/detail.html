@@ -1,7 +1,7 @@
 {% extends "collector/base.html" %}
 {% block title %}Twitter Elections{% endblock %}
 {% block content %}
-<div class="container">
+
 	{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
       <div class="row">
@@ -58,5 +58,5 @@
 	{% endfor %}
 	</div>
 	</form>
-</div>
+
 {% endblock %}

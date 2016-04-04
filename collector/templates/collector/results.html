@@ -1,7 +1,7 @@
 {% extends "collector/base.html" %}
 {% block title %}Twitter Elections{% endblock %}
 {% block content %}
-<div class="container">
+
 	<p>{{ tweet.content }}</p>
 
 	<ul>
@@ -11,5 +11,5 @@
 	</ul>
 
 	<a href="{% url 'collector:detail' tweet.id %}">Vote again?</a>
-</div>
+
 {% endblock %}
