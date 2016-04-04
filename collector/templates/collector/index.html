@@ -2,11 +2,6 @@
 {% block title %}Twitter Elections{% endblock %}
 {% block content %}
 
-	<form action="{% url 'collector:load_tweets' %}" method="post">
-	{% csrf_token %}
-	<input type="submit" value="Load" />
-	</form>
-	
 	{% if tweets_list %}
 	    <ul>
 	    {% for tweet in tweets_list %}

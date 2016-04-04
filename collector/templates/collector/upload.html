@@ -1,10 +1,17 @@
 {% extends 'collector/base.html' %}
 
-{% block content %}/
-        <h1>Upload File</h1>
+{% block content %}
+		
+		<p> Number of loaded tweets {{number}} </p>
+
+        <p>Add more: </p>
+
+		{% if message %}<p><strong>{{ message }}</strong></p>{% endif %}
+
         <form method="POST" action="upload_file"  class="post-form" enctype="multipart/form-data">
         {% csrf_token %}
             {{ form.as_p }}
-            <button type="submit" class="save btn btn-default">Save</button>
+            <button type="submit" class="save btn btn-default">Load</button>
         </form>
+
 {% endblock %}

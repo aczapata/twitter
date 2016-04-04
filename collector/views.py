@@ -426,9 +426,16 @@ def load_tweets(tweets_file):
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
+        number= TwitterData.objects.count()
         if form.is_valid():
             load_tweets(request.FILES['file'])
-            return HttpResponse('Finished!\n')
+            message= "Loaded file!"
+            return render(request, 'collector/upload.html', {'form': form, 'number':number, 'message':message, 'number':number})
+        else:
+            message= "Error with file!"
+            return render(request, 'collector/upload.html', {'form': form, 'number':number, 'message':message, 'number':number})
+         
     else:
+        number= TwitterData.objects.count()
         form = UploadFileForm()
-    return render(request, 'collector/upload.html', {'form': form})
+    return render(request, 'collector/upload.html', {'form': form, 'number':number})
