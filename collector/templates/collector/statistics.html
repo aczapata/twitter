@@ -69,17 +69,15 @@
 	{% endfor %}
 	</ul>
 
-	
+	<h2>Plot Languages</h2>
+	<iframe width="800" height="600" frameborder="0" seamless="seamless" scrolling="no" src= {{plot_lan}}>
+	</iframe>
+
 	<h1>Sentiment Analysis</h1>
 	<h2>Plot </h2>
-	<iframe width="800" height="600" frameborder="0" seamless="seamless" scrolling="no" src= {{plot}}>
+	<iframe width="800" height="600" frameborder="0" seamless="seamless" scrolling="no" src= {{plot_sen}}>
+	</iframe>
 		
-	</iframe>
-	
-	<!-- <h2>Plot </h2>
-	<iframe width="800" height="600" frameborder="0" seamless="seamless" scrolling="no" src= {{plot}}>
-	</iframe>
-	-->	
 	<h2>Positive </h2>
 	<ul>
 	{% for term in top_pos%}

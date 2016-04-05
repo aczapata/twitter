@@ -85,9 +85,10 @@ def tweets_tokenize(request):
         terms_user = [term for term in terms_all if term.startswith('@')]
         terms_stop = [term for term in terms_all if term not in stop]
         terms_only = [term for term in terms_all if term not in stop and not term.startswith(('#', '@'))] 
-        terms_lang.append(tweet.lang)
         
-
+        if tweet.lang is not None:
+            terms_lang.append(tweet.lang)
+        
         terms_bigram = bigrams(terms_stop)
         
         terms_single = set(terms_all)
@@ -157,10 +158,11 @@ def tweets_tokenize(request):
     count_single=count_single.most_common(10)
     count_stop_single=count_stop_single.most_common(10)    
     count_bigrams=count_bigrams.most_common(10) 
-    """
+    
     y_axis_pos = []
     y_axis_neg = []
     y_axis_total = []
+
     for n1,n2 in top_pos:
         y_axis_pos.append(n2)
 
@@ -169,36 +171,21 @@ def tweets_tokenize(request):
     for n1,n2 in top_neg:
         y_axis_neg.append(n2)
     
-<<<<<<< HEAD
-
-    y_axis_pos = []
-    y_axis_neg = []
-    y_axis_total = []
-    for n1,n2 in top_pos:
-        y_axis_pos.append(n2)
-
-    y_axis_total.append((sum(y_axis_pos))/len(y_axis_pos))
-
-    for n1,n2 in top_neg:
-        y_axis_neg.append(n2)
-    
-=======
->>>>>>> master
     y_axis_total.append(abs((sum(y_axis_neg))/len(y_axis_neg)))
     x_axis = ['positive', 'negative']  
+    plot_sen = graph_plot(x_axis,y_axis_total, "Sentiment")
+    
+    print ("Terms Lan")
+    print(terms_lang)
+    
     x=list(Counter(terms_lang))
     y=Counter(terms_lang).values()
-    plot = graph_plot(x_axis,y_axis_total, "Sentiment")
+    plot_lan = graph_plot(x,y, "Languages")
+    
     #para graficar idiomas enviamos x,y simplemente no lo puse en el html para ordenarlo despues pero sirve dont worry
-<<<<<<< HEAD
-
-    context = {'tweets_list': tweets_list, 'plot': plot, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
-    return render(request, 'collector/statistics.html', context)
-
-=======
-    context = {'tweets_list': tweets_list, 'form':form,'plot': plot, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
-    """
-    context = {'tweets_list': tweets_list, 'form':form, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
+    context = {'tweets_list': tweets_list, 'plot_sen': plot_sen,'plot_lan': plot_lan,'form':form, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
+    
+    #context = {'tweets_list': tweets_list, 'form':form, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
     return render(request, 'collector/statistics.html', context)
 
 def topic_filter(request):
@@ -302,7 +289,7 @@ def topic_tokenize(request, query):
     count_single=count_single.most_common(10)
     count_stop_single=count_stop_single.most_common(10)    
     count_bigrams=count_bigrams.most_common(10) 
-    """
+    
     y_axis_pos = []
     y_axis_neg = []
     y_axis_total = []
@@ -316,15 +303,22 @@ def topic_tokenize(request, query):
     
     y_axis_total.append(abs((sum(y_axis_neg))/len(y_axis_neg)))
     x_axis = ['positive', 'negative']  
+    plot_sen = graph_plot(x_axis,y_axis_total, "Sentiment")
+    
     x=list(Counter(terms_lang))
     y=Counter(terms_lang).values()
-    plot = graph_plot(x_axis,y_axis_total, "Sentiment")
+    plot_lan=graph_plot(x_axis,y_axis_total, "Sentiment")
+    
     #para graficar idiomas enviamos x,y simplemente no lo puse en el html para ordenarlo despues pero sirve dont worry
-    context = {'tweets_list': tweets_list, 'form':form,'plot': plot, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
-    """
-    context = {'tweets_list': tweets_list, 'form':form, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
+    context = {'tweets_list': tweets_list, 'form':form,'plot_sen': plot_sen, 'plot_lan': plot_lan, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
+    
+    #context = {'tweets_list': tweets_list, 'form':form, 'count_all': count_all, 'count_only': count_only,'count_hash': count_hash,'count_user': count_user,'count_bigrams': count_bigrams, 'count_single': count_single,'count_stop_single': count_stop_single, 'terms_max': terms_max2,'p_t_max_terms': p_t_max_terms, 'top_pos':top_pos, 'top_neg':top_neg}
     return render(request, 'collector/individual_statistics.html', context)
 
+def geo(request):
+    tweets_list=TwitterData.objects.filter(latitude__isnull=False,longitude__isnull=False)
+    context = {'tweets_list': tweets_list}
+    return render(request, 'collector/geo.html', context)
 
 def graph_plot(x_axis,y_axis, name):
    #Using plotly to graph with x,y parameter bar diagram
