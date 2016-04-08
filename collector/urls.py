@@ -1,7 +1,7 @@
 from django.conf.urls import url
 from . import views
 
-app_name="collector"
+app_name = "collector"
 urlpatterns = [
     # Examples:
     url(r'^$', views.index, name='index'),
@@ -15,5 +15,4 @@ urlpatterns = [
     url(r'^(?P<tweet_id>[0-9]+)/results/$', views.results, name='results'),
     url(r'^(?P<tweet_id>[0-9]+)/tokenize/$', views.tweet_tokenize, name='tokenize'),
     url(r'^(?P<tweet_id>[0-9]+)/vote/$', views.vote, name='vote'),
-	
 ]

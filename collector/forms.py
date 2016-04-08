@@ -1,12 +1,13 @@
 from django import forms
 
+
 class UploadFileForm(forms.Form):
     file = forms.FileField()
 
 
 class SearchForm(forms.Form):
-	text = forms.CharField()
-	"""
+    text = forms.CharField()
+"""
     CHOICES = (
         ('HC', 'Hillary Clinton'),
         ('DT', 'Donald Trump'),
@@ -15,4 +16,4 @@ class SearchForm(forms.Form):
     )
 	#stream.filter(track=["Hillary Clinton", "Donald Trump", "Bernie Sanders", "Marco Rubio", "US election 2016", "Ted Cruz", "John Kasich", "Ben Carson", "Republicans", "Democrats", "Clinton", "Trump", "Bernie", "Rubio", "Cruz", "Carson", "Kasich", "US primaries", "uselections", "Election2016"])
     text= forms.ChoiceField(choices= CHOICES)
-    """
+"""

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import TwitterData,Sentiment
+from .models import TwitterData, Sentiment
 
 # Register your models here.
 
