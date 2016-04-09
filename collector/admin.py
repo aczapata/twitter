@@ -5,3 +5,4 @@ from .models import TwitterData, Sentiment
 
 admin.site.register(TwitterData)
 admin.site.register(Sentiment)
+admin.site.register(TweetFile)
