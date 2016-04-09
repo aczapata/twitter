@@ -11,12 +11,15 @@
               <span class="card-title blue-text">Tweet:</span>
               <p>{{ tweet.content }}</p>
             </div>
+            <div class="card-action">
+              <a class="blue-text" href="{% url 'collector:tokenize' tweet.id %}"> Analytics </a>
+            </div>
           </div>
         </div>
       </div>
 
     <p class="text">How is the sentiment stated in the previous tweet?</p>
-    
+
 	      <ul class="collapsible" data-collapsible="accordion">
 		    <li>
 		      <div class="collapsible-header green white-text"><i class="material-icons">sentiment_satisfied</i>Positive</div>
@@ -35,7 +38,7 @@
 		      <div class="collapsible-body"><p>An irrelevant tweet is ...</p></div>
 		    </li>
 	  	</ul>
-            
+
 	<form action="{% url 'collector:vote' tweet.id %}" method="post">
 	{% csrf_token %}
 	<div class="row">
@@ -46,10 +49,10 @@
 
 			<button class="btn waves-effect waves-light green" id="choice{{ forloop.counter }}" value="{{ choice.id }}" type="input" name="choice"><i class="material-icons left">sentiment_satisfied</i>Positive</button>
 		{% elif choice.sentiment_text = 'NEG'%}
-		
+
 			<button class="btn waves-effect waves-light red" id="choice{{ forloop.counter }}" value="{{ choice.id }}" type="input" name="choice"><i class="material-icons left">sentiment_dissatisfied</i>Negative</button>
 		{% elif choice.sentiment_text = 'UND'%}
-		
+
 			<button class="btn waves-effect waves-light grey" id="choice{{ forloop.counter }}" value="{{ choice.id }}" type="input" name="choice"><i class="material-icons left">sentiment_neutral</i>I can't decide</button>
 		{% elif choice.sentiment_text = 'IRR'%}
 			<button class="btn waves-effect waves-light" id="choice{{ forloop.counter }}" value="{{ choice.id }}" type="input" name="choice"><i class="material-icons left">sentiment_very_dissatisfied</i>Irrelevant</button>

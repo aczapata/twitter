@@ -7,6 +7,8 @@ import math
 import plotly.plotly as py
 import plotly.graph_objs as go
 import plotly.tools as tls
+import sentlex
+import sentlex.sentanalysis
 from collections import Counter, defaultdict
 from django.shortcuts import render, get_object_or_404
 from .models import TwitterData, Sentiment
@@ -74,9 +76,13 @@ def analysis(tweets_list):
     count_stop_single = Counter()
     count_positive = Counter()
     count_negative = Counter()
-    terms_max2 = []
     com = defaultdict(lambda: defaultdict(int))
     terms_lang = []
+    positive = 0
+    negative = 0
+    neutral = 0
+    SWN = sentlex.SWN3Lexicon()
+    classifier = sentlex.sentanalysis.BasicDocSentiScore()
 
     for tweet in tweets_list:
         # Create a list with all the terms
@@ -87,26 +93,33 @@ def analysis(tweets_list):
         terms_hash = [term for term in terms_all if term.startswith('#')]
         terms_user = [term for term in terms_all if term.startswith('@')]
         terms_stop = [term for term in terms_all if term not in stop]
-        terms_only = [term for term in terms_all if term not in stop and
-                      not term.startswith(('#', '@'))]
-
         terms_positive = [term for term in terms_all if term in positive_vocab]
         terms_negative = [term for term in terms_all if term in negative_vocab]
 
         if tweet.lang is not None:
             terms_lang.append(tweet.lang)
 
-        terms_bigram = bigrams(terms_stop)
+        classifier.classify_document(tweet.content, tagged=False, L=SWN, a=True, v=True, n=True, r=False, negation=True, verbose=False)
+        results = classifier.resultdata
+        results_pos = results['resultpos']
+        results_neg = results['resultneg']
+        dif = abs(results_pos - results_neg)
 
-        terms_single = set(terms_all)
+        if(dif > 0.05):
+            if(results_pos > results_neg):
+                positive += 1
+            else:
+                negative += 1
+        else:
+            neutral += 1
+
+        terms_bigram = bigrams(terms_stop)
         terms_stop_single = set(terms_stop)
 
         count_all.update(terms_stop)
         count_hash.update(terms_hash)
         count_user.update(terms_user)
-        count_only.update(terms_only)
         count_bigrams.update(terms_bigram)
-        count_single.update(terms_single)
         count_stop_single.update(terms_stop_single)
         count_positive.update(terms_positive)
         count_negative.update(terms_negative)
@@ -157,8 +170,7 @@ def analysis(tweets_list):
     top_pos = semantic_sorted[:10]
     top_neg = semantic_sorted[-10:]
 
-    terms_max = sorted(com_max, key=operator.itemgetter(1), reverse=True)
-    terms_max2 = terms_max[:10]
+    terms_max = sorted(com_max, key=operator.itemgetter(1), reverse=True)[:10]
     count_all = count_all.most_common(10)
     count_hash = count_hash.most_common(10)
     count_user = count_user.most_common(10)
@@ -168,20 +180,13 @@ def analysis(tweets_list):
     count_bigrams = count_bigrams.most_common(10)
 
     y_axis_total = []
-    total_pos = 0
-    total_neg = 0
 
-    for n1 in count_positive.values():
-        total_pos += n1
 
-    y_axis_total.append(total_pos)
+    y_axis_total.append(positive)
+    y_axis_total.append(negative)
+    y_axis_total.append(neutral)
 
-    for n1 in count_negative.values():
-        total_neg += n1
-
-    y_axis_total.append(total_neg)
-
-    x_axis = ['positive', 'negative']
+    x_axis = ['positive', 'negative', 'neutral']
     plot_sen = graph_plot(x_axis, y_axis_total, "Sentiment")
 
     x = list(Counter(terms_lang))
@@ -190,11 +195,11 @@ def analysis(tweets_list):
 
     context = {'tweets_list': tweets_list,
                'plot_sen': plot_sen, 'plot_lan': plot_lan,
-               'count_all': count_all, 'count_only': count_only,
+               'count_all': count_all,
                'count_hash': count_hash, 'count_user': count_user,
-               'count_bigrams': count_bigrams, 'count_single': count_single,
+               'count_bigrams': count_bigrams,
                'count_stop_single': count_stop_single,
-               'terms_max': terms_max2, 'p_t_max_terms': p_t_max_terms,
+               'terms_max': terms_max, 'p_t_max_terms': p_t_max_terms,
                'top_pos': top_pos, 'top_neg': top_neg}
     return context
 
@@ -282,46 +287,24 @@ def preprocess(s, lowercase=False):
     return tokens
 
 
+def lexicon_tweet(tweet):
+    SWN = sentlex.SWN3Lexicon()
+    classifier = sentlex.sentanalysis.BasicDocSentiScore()
+    classifier.classify_document(tweet.content, tagged=False, L=SWN, a=True, v=True, n=True, r=False, negation=True, verbose=False)
+    results = classifier.resultdata
+    results_pos = results['resultpos']
+    results_neg = results['resultneg']
+    dif = abs(results_pos - results_neg)
+    context = {'results': results, 'dif': dif,
+               'results_pos': results_pos, 'results_neg': results_neg}
+    return context
+
+
 def tweet_tokenize(request, tweet_id):
 
     tweet = get_object_or_404(TwitterData, pk=tweet_id)
-
-    punctuation = list(string.punctuation)
-    stop = stopwords.words('english') + punctuation + ['rt', 'RT', 'via']
-
-    terms_all = [term for term in preprocess(tweet.content)]
-    terms_stop = [term for term in terms_all if term not in stop]
-    terms_only = [term for term in terms_all if term not in stop and
-                  not term.startswith(('#', '@'))]
-    terms_single = set(terms_all)
-    terms_stop_single = set(terms_stop)
-
-    com = defaultdict(lambda: defaultdict(int))
-    for i in range(len(terms_stop) - 1):
-        for j in range(i + 1, len(terms_stop)):
-            w1, w2 = sorted([terms_stop[i], terms_stop[j]])
-            if w1 != w2:
-                com[w1][w2] += 1
-
-    com_max = []
-    # For each term, look for the most common co-occurrent terms
-    for t1 in terms_stop:
-        try:
-            for t2 in com[t1]:
-                print (t1 + "," + t2 + ":")
-        except:
-            continue
-
-    """
-    for t1 in com:
-       t1_max_terms = max(com[t1].items(), key=operator.itemgetter(1))[:5]
-       for t2 in t1_max_terms:
-           com_max.append(((t1, t2), com[t1][t2]))
-    """
-    context = {'tweet': tweet, 'terms_stop': terms_stop,
-               'terms_only': terms_only, 'terms_single': terms_single,
-               'terms_stop_single': terms_stop_single,
-               'com': com, 'com_max': com_max}
+    context = lexicon_tweet(tweet)
+    context.update({'tweet': tweet})
     return render(request, 'collector/tokenize.html', context)
 
 
@@ -336,7 +319,7 @@ def load_tweets(tweets_file):
                                    content=tweet['text'],
                                    user=tweet['user']['screen_name'],
                                    date=datetime.datetime.strptime(
-                    str(tweet['created_at']), "%a %b %d %H:%M:%S +%f %Y"))
+                str(tweet['created_at']), "%a %b %d %H:%M:%S +%f %Y"))
             if tweet.get('coordinates'):
                 tweet_db.latitude = tweet['coordinates']['coordinates'][1]
                 tweet_db.longitude = tweet['coordinates']['coordinates'][0]
