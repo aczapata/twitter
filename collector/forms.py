@@ -1,8 +1,12 @@
 from django import forms
+from collector.models import TweetFile
+from django.forms import ModelForm
 
 
-class UploadFileForm(forms.Form):
-    file = forms.FileField()
+class UploadFileForm(ModelForm):
+    class Meta:
+            model = TweetFile
+            fields = ['file']
 
 
 class SearchForm(forms.Form):

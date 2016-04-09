@@ -364,11 +364,13 @@ def upload_file(request):
         form = UploadFileForm(request.POST, request.FILES)
         number = TwitterData.objects.count()
         if form.is_valid():
-            load_file_task.delay(request.FILES['file'])
+            tweets_file = form.save()
+            load_file_task.delay(tweets_file)
             message = "Loaded file!"
             context = {'form': form, 'number': number, 'message': message}
             return render(request, 'collector/upload.html', context)
         else:
+            message = "Ups Failed!"
             context = {'form': form, 'number': number, 'message': message}
             return render(request, 'collector/upload.html', context)
     else:

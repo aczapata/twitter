@@ -7,11 +7,11 @@ from celery.utils.log import get_task_logger
 logger = get_task_logger(__name__)
 
 
-def load_tweets(tweets_file):
+def load_tweets(tweet_f):
     count = 0
-    # file_path = '/static/TwitterData240320161624.txt'
-    # tweets_file = open(file_path, "r")
+    tweets_file = tweet_f.file
     for line in tweets_file:
+        try:
             tweet = json.loads(line)
             tweet_db = TwitterData(tweet_id=tweet['id_str'],
                                    content=tweet['text'],
@@ -21,7 +21,7 @@ def load_tweets(tweets_file):
                                    "%a %b %d %H:%M:%S +%f %Y"))
             if tweet.get('coordinates'):
                 tweet_db.latitude = tweet['coordinates']['coordinates'][1]
-            tweet_db.longitude = tweet['coordinates']['coordinates'][0]
+                tweet_db.longitude = tweet['coordinates']['coordinates'][0]
             if tweet.get('source'):
                 tweet_db.source = tweet['source']
             if tweet['user'].get('location'):
@@ -34,9 +34,11 @@ def load_tweets(tweets_file):
             tweet_db.sentiment_set.create(sentiment_text="UND")
             tweet_db.sentiment_set.create(sentiment_text="NEG")
             tweet_db.sentiment_set.create(sentiment_text="POS")
+        except:
+            continue
     return count
 
 
 @task(name="Load_Tweets")
-def load_file_task(file):
-    return load_tweets(file)
+def load_file_task(file_path):
+    return load_tweets(file_path)
