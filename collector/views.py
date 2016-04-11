@@ -105,7 +105,7 @@ def analysis(tweets_list):
         results_neg = results['resultneg']
         dif = abs(results_pos - results_neg)
 
-        if(dif > 0.05):
+        if(dif > 0.02):
             if(results_pos > results_neg):
                 positive += 1
             else:
@@ -187,11 +187,11 @@ def analysis(tweets_list):
     y_axis_total.append(neutral)
 
     x_axis = ['positive', 'negative', 'neutral']
-    plot_sen = graph_plot(x_axis, y_axis_total, "Sentiment")
+    plot_sen = graph_plot(x_axis, y_axis_total, "Sentiment", 'pie')
 
     x = list(Counter(terms_lang))
     y = Counter(terms_lang).values()
-    plot_lan = graph_plot(x, y, "Languages")
+    plot_lan = graph_plot(x, y, "Languages", 'bar')
 
     context = {'tweets_list': tweets_list,
                'plot_sen': plot_sen, 'plot_lan': plot_lan,
@@ -232,14 +232,22 @@ def geo(request):
     return render(request, 'collector/geo.html', context)
 
 
-def graph_plot(x_axis, y_axis, name):
+def graph_plot(x_axis, y_axis, name, graph_type):
     # Using plotly to graph with x,y parameter bar diagram
-    trace = dict(x=x_axis, y=y_axis)
-    data = [
-        go.Bar(
-            trace
-        )
-    ]
+    if(graph_type is 'pie'):
+        trace = dict(labels=x_axis, values=y_axis)
+        data = [
+            go.Pie(
+                trace
+            )
+        ]
+    else:
+        trace = dict(x=x_axis, y=y_axis)
+        data = [
+            go.Bar(
+                trace
+            )
+        ]
     plot = py.plot(data, filename=name, auto_open=False)
     return plot
 
