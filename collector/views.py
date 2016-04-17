@@ -16,6 +16,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from nltk.corpus import stopwords
 from nltk import bigrams
+from nltk.tag import pos_tag
 from .forms import UploadFileForm, SearchForm
 from collector.tasks import load_file_task
 
@@ -45,6 +46,8 @@ regex_str = [
 
 positive_vocab = []
 negative_vocab = []
+tagged_vocab = []
+
 
 
 def load_words(file, vector=[]):
@@ -54,6 +57,9 @@ def load_words(file, vector=[]):
 
 load_words("./static/positive-words.txt", positive_vocab)
 load_words("./static/negative-words.txt", negative_vocab)
+load_words("./static/tagged-words.txt", tagged_vocab)
+
+
 tokens_re = re.compile(
     r'(' + '|'.join(regex_str) + ')', re.VERBOSE | re.IGNORECASE)
 emoticon_re = re.compile(
@@ -99,7 +105,8 @@ def analysis(tweets_list):
         if tweet.lang is not None:
             terms_lang.append(tweet.lang)
 
-        classifier.classify_document(tweet.content, tagged=False, L=SWN, a=True, v=True, n=True, r=False, negation=True, verbose=False)
+        classifier.classify_document(
+            tweet.content, tagged=False, L=SWN, a=True, v=True, n=True, r=False, negation=True, verbose=False)
         results = classifier.resultdata
         results_pos = results['resultpos']
         results_neg = results['resultneg']
@@ -181,7 +188,6 @@ def analysis(tweets_list):
 
     y_axis_total = []
 
-
     y_axis_total.append(positive)
     y_axis_total.append(negative)
     y_axis_total.append(neutral)
@@ -192,7 +198,6 @@ def analysis(tweets_list):
     x = list(Counter(terms_lang))
     y = Counter(terms_lang).values()
     plot_lan = graph_plot(x, y, "Languages", 'bar')
-
     context = {'tweets_list': tweets_list,
                'plot_sen': plot_sen, 'plot_lan': plot_lan,
                'count_all': count_all,
@@ -202,6 +207,13 @@ def analysis(tweets_list):
                'terms_max': terms_max, 'p_t_max_terms': p_t_max_terms,
                'top_pos': top_pos, 'top_neg': top_neg}
     return context
+
+
+def tagged_words(terms):
+    POS = [pos_tag(terms) for term in terms]
+    POS = [[(word, word, [postag]) for (word, postag) in term] for term in POS]
+
+    return POS
 
 
 def tweets_tokenize(request):
@@ -298,7 +310,8 @@ def preprocess(s, lowercase=False):
 def lexicon_tweet(tweet):
     SWN = sentlex.SWN3Lexicon()
     classifier = sentlex.sentanalysis.BasicDocSentiScore()
-    classifier.classify_document(tweet.content, tagged=False, L=SWN, a=True, v=True, n=True, r=False, negation=True, verbose=False)
+    classifier.classify_document(
+        tweet.content, tagged=False, L=SWN, a=True, v=True, n=True, r=False, negation=True, verbose=False)
     results = classifier.resultdata
     results_pos = results['resultpos']
     results_neg = results['resultneg']
