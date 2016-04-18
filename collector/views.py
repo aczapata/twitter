@@ -69,7 +69,7 @@ emoticon_re = re.compile(
 def index(request):
     tweets_list = TwitterData.objects.all()
     context = {'tweets_list': tweets_list}
-    return render(request, 'collector/index.html', context)
+    return render(request, 'collector/index2.html', context)
 
 
 def analysis(tweets_list):

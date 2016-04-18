@@ -13,8 +13,7 @@ class TwitterData(models.Model):
     longitude = models.DecimalField(null=True, max_digits=11,
                                     decimal_places=7, blank=True)
     date = models.DateTimeField(null=True, blank=True)
-    source = models.CharField(max_length=250, null=True, blank=True)
-    user = models.CharField(max_length=300, null=True)
+    tweet_user = models.CharField(max_length=300, null=True)
     user_location = models.CharField(max_length=300, null=True, blank=True)
 
     def __unicode__(self):

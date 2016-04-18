@@ -1,0 +1,70 @@
+{% extends "collector/base.html" %}
+{% load staticfiles %}
+
+{% block title %}Twitter Elections{% endblock %}
+{% block navlinks %}
+ 		<li><a href="#what">What?</a></li>
+        <li><a href="#where">Where?</a></li>
+        <li><a href="#how">How?</a></li>
+{% endblock %}
+
+{% block banner %}
+	<div id="index-banner" class="parallax-container">
+	    <div class="section no-pad-bot">
+	      <div class="container">
+	        <br><br>
+	        <h1 class="center">The Role of Social Media</h1>
+	      </div>
+	    </div>
+	    <div class="parallax"><img src="{% static 'collector/images/usa elections.jpg' %}" alt="Unsplashed background img 1"></div>
+ 	</div>
+{% endblock%}
+{% block content %}
+
+<section id="what" class="scrollspy">
+
+	<div class="row valign-wrapper">
+		<div class= "col s12">
+			<h2 class="blue-text center">What is Twitter Elections?</h2>
+			<img class= "col s5 m3 responsive-img" src="{% static 'collector/images/twitter-elections-logo.png' %}" alt="Logo Image"/>
+			<div class="col s7 m9">
+			<p class="valign flow-text">
+				Twitter Elections is the implementation of Sentiment Analysis Tool in the 2016 United States Elections. We use tweets in order to determine the opinions of Twitter Users towards the political candidates and parties during the pre-election period.
+			</p>
+			</div>
+		</div>
+	</div>
+</section>
+
+<section id="where" class="scrollspy">
+
+	<div class="row valign-wrapper">
+		<div class= "col s12">
+		<h2 class="blue-text center">What is being analyzed?</h2>
+		<img class= "col s5 m3 responsive-img" src="{% static 'collector/images/twitter-api.png' %}" alt="API Image"/>
+		<div class="col s7 m9">
+
+		<p class="valign flow-text">
+			We have taked samples of tweets during important events of the pre-election period using the Twitter API. #No me acuerdo cuando # We have chosen tweets that contain the words: #Aqui van las words# and the hashtags: #Aqui van los hashtags#
+		</p>
+		</div>
+	</div>
+	</div>
+</section>
+
+<section id="how" class="scrollspy">
+
+	<div class="row valign-wrapper">
+		<div class= "col s12">
+		<h2 class="blue-text center">How does it works?</h2>
+		<img class= "col s5 m3 responsive-img" src="{% static 'collector/images/sentiment_logo.png' %}" alt="How Image"/>
+		<div class="col s7 m9">
+		<p class="valign flow-text">
+			We apply different methods to determine the <a class="tooltipped" data-position="bottom" data-delay="50" data-tooltip="A sentiment is ...">Sentiment</a> of a tweet in order to determine if it is positive, neutral or negative. To do so we have implemented 3 <a class="tooltipped" data-position="bottom" data-delay="50" data-tooltip="A lexicon is ..."> Lexicons </a>: #Name the lexicons# and <a class="tooltipped" data-position="bottom" data-delay="50" data-tooltip="Machine Learning is ..."> Machine Learning </a> techiniques: #Name the techniques#.
+		</p>
+		</div>
+		</div>
+	</div>
+</section>
+
+{% endblock %}
