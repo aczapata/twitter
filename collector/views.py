@@ -4,11 +4,13 @@ import re
 import string
 import operator
 import math
+import nltk
 import plotly.plotly as py
 import plotly.graph_objs as go
 import plotly.tools as tls
 import sentlex
 import sentlex.sentanalysis
+from nltk.stem import WordNetLemmatizer
 from collections import Counter, defaultdict
 from django.shortcuts import render, get_object_or_404
 from .models import TwitterData, Sentiment
@@ -19,10 +21,13 @@ from nltk import bigrams
 from nltk.tag import pos_tag
 from .forms import UploadFileForm, SearchForm
 from collector.tasks import load_file_task
+from pattern.en import singularize
 
 tls.set_credentials_file(username='melissaam', api_key='oghjiijwta')
 
 # Variables
+lemmatizer = WordNetLemmatizer()
+
 emoticons_str = r"""
     (?:
         [:=;] # Eyes
@@ -101,6 +106,8 @@ def analysis(tweets_list):
         terms_stop = [term for term in terms_all if term not in stop]
         terms_positive = [term for term in terms_all if term in positive_vocab]
         terms_negative = [term for term in terms_all if term in negative_vocab]
+        dict_tagged_sentences = [
+            tag for tag in tag_sentence(tweet, nltk.pos_tag(preprocess(tweet.content)))]
 
         if tweet.lang is not None:
             terms_lang.append(tweet.lang)
@@ -207,6 +214,45 @@ def analysis(tweets_list):
                'terms_max': terms_max, 'p_t_max_terms': p_t_max_terms,
                'top_pos': top_pos, 'top_neg': top_neg}
     return context
+
+
+def tag_sentence(tweet, sentence, tag_with_lemmas=False):
+    """
+        It choose a preprocess tweet, tokenized and apply some
+        lexicons techniques like singularize and transforms
+        verbs in order to punctuate a sentence base on the SO-cal dictionary.
+        We have to study and look for ways to improve the results based on lexicons
+    """
+    tag_sentence = []
+    total_sentiment = 0
+    for term in sentence:
+        check = term[0]
+        tagged_vocab_words = [i.split('\t')[0] for i in tagged_vocab]
+        if term[1] == 'NNS':
+            check = singularize(''.join(term[0]))
+        if transform(''.join(term[1])):
+            check = lemmatizer.lemmatize(''.join(term[0]), 'v')
+        if check in tagged_vocab_words:
+            total_sentiment += float(
+                tagged_vocab[tagged_vocab_words.index(check)].split('\t')[1])
+    print tweet.content + ";" + str(total_sentiment)
+    tag_sentence.append(tweet.content + ";" + str(total_sentiment))
+    return tag_sentence
+
+
+def transform(term):
+    if term == 'VBZ':
+        return True
+    elif term == 'VBP':
+        return True
+    elif term == 'VBN':
+        return True
+    elif term == 'VBG':
+        return True
+    elif term == 'VBD':
+        return True
+    else:
+        return False
 
 
 def tagged_words(terms):
