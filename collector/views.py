@@ -55,7 +55,6 @@ tagged_vocab = []
 lexicon_tag = []
 
 
-
 def load_words(file, vector=[]):
     f = open(file, 'r')
     for line in f:
@@ -107,9 +106,10 @@ def analysis(tweets_list):
         terms_stop = [term for term in terms_all if term not in stop]
         terms_positive = [term for term in terms_all if term in positive_vocab]
         terms_negative = [term for term in terms_all if term in negative_vocab]
-        dict_tagged_sentences = [
-            tag for tag in tag_sentence(tweet, nltk.pos_tag(preprocess(tweet.content)))]
-        lexicon_tag.append(dict_tagged_sentences)
+        if tweet.lang == 'en':
+            dict_tagged_sentences = [
+                tag for tag in tag_sentence(tweet, nltk.pos_tag(preprocess(tweet.content)))]
+            lexicon_tag.append(dict_tagged_sentences)
 
         if tweet.lang is not None:
             terms_lang.append(tweet.lang)
@@ -227,16 +227,25 @@ def tag_sentence(tweet, sentence, tag_with_lemmas=False):
     """
     tag_sentence = []
     total_sentiment = 0
-    for term in sentence:
-        check = term[0]
-        tagged_vocab_words = [i.split('\t')[0] for i in tagged_vocab]
-        if term[1] == 'NNS':
-            check = singularize(''.join(term[0]))
-        if transform(''.join(term[1])):
-            check = lemmatizer.lemmatize(''.join(term[0]), 'v')
+    N = len(sentence)
+    i = 0
+    while i < N:
+        check = sentence[i][0]
+        tagged_vocab_words = [j.split('\t')[0] for j in tagged_vocab]
+        if sentence[i][0] == 'not' and i != N:
+            if sentence[i + 1][0] in tagged_vocab_words:
+                total_sentiment = float(
+                    tagged_vocab[tagged_vocab_words.index(sentence[i + 1][0])].split('\t')[1]) * -1
+                i += 1
+        if sentence[i][1] == 'NNS':
+            check = singularize(''.join(sentence[i][0]))
+        if transform(''.join(sentence[i][1])):
+            check = lemmatizer.lemmatize(''.join(sentence[i][0]), 'v')
         if check in tagged_vocab_words:
             total_sentiment += float(
                 tagged_vocab[tagged_vocab_words.index(check)].split('\t')[1])
+        i += 1
+    print tweet.content + ";" + sentiment(total_sentiment)
     tag_sentence.append(tweet.content + ";" + sentiment(total_sentiment))
     return tag_sentence
 
