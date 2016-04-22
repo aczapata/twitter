@@ -52,6 +52,7 @@ regex_str = [
 positive_vocab = []
 negative_vocab = []
 tagged_vocab = []
+lexicon_tag = []
 
 
 
@@ -108,6 +109,7 @@ def analysis(tweets_list):
         terms_negative = [term for term in terms_all if term in negative_vocab]
         dict_tagged_sentences = [
             tag for tag in tag_sentence(tweet, nltk.pos_tag(preprocess(tweet.content)))]
+        lexicon_tag.append(dict_tagged_sentences)
 
         if tweet.lang is not None:
             terms_lang.append(tweet.lang)
@@ -198,7 +200,7 @@ def analysis(tweets_list):
     y_axis_total.append(positive)
     y_axis_total.append(negative)
     y_axis_total.append(neutral)
-
+    print lexicon_tag
     x_axis = ['positive', 'negative', 'neutral']
     plot_sen = graph_plot(x_axis, y_axis_total, "Sentiment", 'pie')
 
@@ -235,9 +237,17 @@ def tag_sentence(tweet, sentence, tag_with_lemmas=False):
         if check in tagged_vocab_words:
             total_sentiment += float(
                 tagged_vocab[tagged_vocab_words.index(check)].split('\t')[1])
-    print tweet.content + ";" + str(total_sentiment)
-    tag_sentence.append(tweet.content + ";" + str(total_sentiment))
+    tag_sentence.append(tweet.content + ";" + sentiment(total_sentiment))
     return tag_sentence
+
+
+def sentiment(value):
+    if value > 1:
+        return "positive"
+    elif value < -1:
+        return "negative"
+    else:
+        return "neutral"
 
 
 def transform(term):
