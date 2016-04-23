@@ -294,7 +294,7 @@ def tag_sentence(tweet, sentence, tag_with_lemmas=False):
     while i < N:
         check = sentence[i][0]
         tagged_vocab_words = [j.split('\t')[0] for j in tagged_vocab]
-        if sentence[i][0] == 'not' and i != N:
+        if sentence[i][0] == 'not' and i != N-1 :
             if sentence[i + 1][0] in tagged_vocab_words:
                 total_sentiment = float(
                     tagged_vocab[tagged_vocab_words.index(sentence[i + 1][0])].split('\t')[1]) * -1
