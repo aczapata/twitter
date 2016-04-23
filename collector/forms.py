@@ -9,6 +9,24 @@ class UploadFileForm(ModelForm):
             fields = ['file']
 
 
+class FilterForm(forms.Form):
+    #Parties
+    dp = forms.BooleanField(required=False)
+    rp = forms.BooleanField(required=False)
+
+    #Candidates
+    dt = forms.BooleanField(required=False)
+    hc = forms.BooleanField(required=False)
+    mr = forms.BooleanField(required=False)
+    bs = forms.BooleanField(required=False)
+    tc = forms.BooleanField(required=False)
+
+    #Events
+    st = forms.BooleanField(required=False)
+    fp = forms.BooleanField(required=False)
+    rd = forms.BooleanField(required=False)
+    dd = forms.BooleanField(required=False)
+
 class SearchForm(forms.Form):
     text = forms.CharField()
 """

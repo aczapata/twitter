@@ -10,6 +10,7 @@ import plotly.graph_objs as go
 import plotly.tools as tls
 import sentlex
 import sentlex.sentanalysis
+import operator
 from nltk.stem import WordNetLemmatizer
 from collections import Counter, defaultdict
 from django.shortcuts import render, get_object_or_404
@@ -19,7 +20,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from nltk.corpus import stopwords
 from nltk import bigrams
 from nltk.tag import pos_tag
-from .forms import UploadFileForm, SearchForm
+from .forms import UploadFileForm, SearchForm, FilterForm
+from django.db.models import Q
 from collector.tasks import load_file_task
 from pattern.en import singularize
 
@@ -54,6 +56,7 @@ negative_vocab = []
 tagged_vocab = []
 lexicon_tag = []
 
+
 def load_words(file, vector=[]):
     f = open(file, 'r')
     for line in f:
@@ -76,11 +79,64 @@ def index(request):
     return render(request, 'collector/index2.html', context)
 
 
+def apply_filters(filters):
+    filtered_data = Q()
+    for t in filters:
+        if filters[t]:
+            if t == 'rp':
+                filtered_data.add(Q(content__icontains="Republican"), Q.OR)
+            if t == 'dp':
+                filtered_data.add(Q(content__icontains="Democratic"), Q.OR)
+            if t == 'dt':
+                filtered_data.add(Q(content__icontains="Donald"), Q.OR)
+                filtered_data.add(Q(content__icontains="Trump"), Q.OR)
+            if t == 'hc':
+                filtered_data.add(Q(content__icontains="Hillary"), Q.OR)
+                filtered_data.add(Q(content__icontains="Clinton"), Q.OR)
+            if t == 'tc':
+                filtered_data.add(Q(content__icontains="Ted"), Q.OR)
+                filtered_data.add(Q(content__icontains="Cruz"), Q.OR)
+            if t == 'bs':
+                filtered_data.add(Q(content__icontains="Bernie"), Q.OR)
+                filtered_data.add(Q(content__icontains="Sanders"), Q.OR)
+            if t == 'mr':
+                filtered_data.add(Q(content__icontains="Marco"), Q.OR)
+                filtered_data.add(Q(content__icontains="Rubio"), Q.OR)
+
+    tweets_list = TwitterData.objects.filter(filtered_data)
+    return tweets_list
+
 def filter(request):
     if request.method == "POST":
-        #filters = request.POST[]
-        print "esta aqui"
-    return render(request, 'collector/filter.html')
+        form = FilterForm(request.POST)
+        if form.is_valid():
+            # Parties
+            filters = {}
+            filters.setdefault('rp', form.cleaned_data['rp'])
+            filters.setdefault('dp', form.cleaned_data['dp'])
+            # Candidates
+            filters.setdefault('dt', form.cleaned_data['dt'])
+            filters.setdefault('hc', form.cleaned_data['hc'])
+            filters.setdefault('tc', form.cleaned_data['tc'])
+            filters.setdefault('mr', form.cleaned_data['mr'])
+            filters.setdefault('bs', form.cleaned_data['bs'])
+
+            # Events
+            filters.setdefault('st', form.cleaned_data['st'])
+            filters.setdefault('fp', form.cleaned_data['fp'])
+            filters.setdefault('dd', form.cleaned_data['dd'])
+            filters.setdefault('rd', form.cleaned_data['rd'])
+
+            context = analysis(apply_filters(filters))
+            form = FilterForm()
+            context.update({'form': form})
+            return render(request, 'collector/filter.html', context)
+        else:
+            print form.errors
+
+    else:
+        form = FilterForm()
+    return render(request, 'collector/filter.html', {'form':form})
 
 
 def analysis(tweets_list):
@@ -208,13 +264,13 @@ def analysis(tweets_list):
     y_axis_total.append(neutral)
     print lexicon_tag
     x_axis = ['positive', 'negative', 'neutral']
-    plot_sen = graph_plot(x_axis, y_axis_total, "Sentiment", 'pie')
+    #plot_sen = graph_plot(x_axis, y_axis_total, "Sentiment", 'pie')
 
     x = list(Counter(terms_lang))
     y = Counter(terms_lang).values()
-    plot_lan = graph_plot(x, y, "Languages", 'bar')
+    #plot_lan = graph_plot(x, y, "Languages", 'bar')
     context = {'tweets_list': tweets_list,
-               'plot_sen': plot_sen, 'plot_lan': plot_lan,
+               #'plot_sen': plot_sen, 'plot_lan': plot_lan,
                'count_all': count_all,
                'count_hash': count_hash, 'count_user': count_user,
                'count_bigrams': count_bigrams,
@@ -278,7 +334,6 @@ def tagged_words(terms):
 
 
 def tweets_tokenize(request):
-
     tweets_list = TwitterData.objects.all()
     form = SearchForm
     context = analysis(tweets_list)
