@@ -54,7 +54,6 @@ negative_vocab = []
 tagged_vocab = []
 lexicon_tag = []
 
-
 def load_words(file, vector=[]):
     f = open(file, 'r')
     for line in f:
@@ -75,6 +74,13 @@ def index(request):
     tweets_list = TwitterData.objects.all()
     context = {'tweets_list': tweets_list}
     return render(request, 'collector/index2.html', context)
+
+
+def filter(request):
+    if request.method == "POST":
+        #filters = request.POST[]
+        print "esta aqui"
+    return render(request, 'collector/filter.html')
 
 
 def analysis(tweets_list):
@@ -256,15 +262,7 @@ def sentiment(value):
 
 
 def transform(term,term_modified):
-    if term == 'VBZ':
-        return lemmatizer.lemmatize(''.join(term_modified), 'v')
-    elif term == 'VBP':
-        return lemmatizer.lemmatize(''.join(term_modified), 'v')
-    elif term == 'VBN':
-        return lemmatizer.lemmatize(''.join(term_modified), 'v')
-    elif term == 'VBG':
-        return lemmatizer.lemmatize(''.join(term_modified), 'v')
-    elif term == 'VBD':
+    if term == 'VBZ' or term == 'VBP' or term == 'VBN' or term == 'VBG' or term == 'VBD':
         return lemmatizer.lemmatize(''.join(term_modified), 'v')
     elif term == 'NNS':
         return singularize(''.join(term_modified))

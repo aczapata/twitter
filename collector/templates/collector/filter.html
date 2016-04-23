@@ -1,0 +1,63 @@
+{% extends "collector/base.html" %}
+{% load staticfiles %}
+{% block title %}Twitter Elections{% endblock %}
+{% block banner %}
+	<div class="row">
+		<div class="col s3 no-padding">
+			<ul class="side-nav static-nav fixed grey lighten-3">
+        <form action="" method="post">
+        {% csrf_token %}
+          	<ul class="collapsible collapsible-accordion">
+	            <li class="bold"><a class="collapsible-header  waves-effect ">Parties</a>
+	              <div class="collapsible-body">
+	                <ul>
+	                	<li><p><input type="checkbox" id="demo" />
+	                		<label for="demo">Democratic</label></p>
+	                	</li>
+	                	<li><p><input type="checkbox" id="rep" />
+	                		<label for="rep">Republican</label></p>
+	                	</li>
+	                </ul>
+	              </div>
+	            </li>
+	            <li class="bold"><a class="collapsible-header  waves-effect ">Candidates</a>
+	              <div class="collapsible-body">
+	                <ul>
+	                	<li><p><input type="checkbox" id="dt" />
+	                		<label for="dt">Donald Trump</label></p>
+	                	</li>
+	                	<li><p><input type="checkbox" id="hc" />
+	                		<label for="hc">Hillary Clinton</label></p>
+	                	</li>
+	                	<li><p><input type="checkbox" id="bs" />
+	                		<label for="bs">Bernie Sanders</label></p>
+	                	</li>
+	                	<li><p><input type="checkbox" id="mr" />
+	                		<label for="mr">Marco Rubio</label></p>
+	                	</li>
+	                </ul>
+	              </div>
+	            </li>
+	            <li class="bold"><a class="collapsible-header  waves-effect ">Events</a>
+	              <div class="collapsible-body">
+	                <ul>
+	                	<li><p><input type="checkbox" id="st" />
+	                		<label for="st">Super Tuesday</label></p>
+	                	</li>
+	                	<li><p><input type="checkbox" id="db" />
+	                		<label for="db">Debate</label></p>
+	                	</li>
+	                </ul>
+	              </div>
+	            </li>
+	            <li class="bold" >
+	            	<button type="submit" class="save btn btn-default"> Filter </button>
+	            </li>
+        	</ul>
+        	</form>
+        	</ul>
+		</div>
+		<div class="col s9"> LALALA </div>
+	</div>
+
+{% endblock %}

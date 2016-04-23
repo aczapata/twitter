@@ -6,11 +6,12 @@
  * Made By MaterializeCSS.com
  */
 
-
 p {
   line-height: 2rem;
 }
-
+.static-nav{
+  position: relative!important;
+}
 .parallax-container {
   min-height: 500px;
   line-height: 0;
