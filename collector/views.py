@@ -242,7 +242,6 @@ def tag_sentence(tweet, sentence, tag_with_lemmas=False):
             total_sentiment += float(
                 tagged_vocab[tagged_vocab_words.index(check)].split('\t')[1])
         i += 1
-    print "Estoy analizando por aqui "
     tag_sentence.append(tweet.content + ";" + sentiment(total_sentiment))
     return tag_sentence
 
@@ -257,15 +256,7 @@ def sentiment(value):
 
 
 def transform(term,term_modified):
-    if term == 'VBZ':
-        return lemmatizer.lemmatize(''.join(term_modified), 'v')
-    elif term == 'VBP':
-        return lemmatizer.lemmatize(''.join(term_modified), 'v')
-    elif term == 'VBN':
-        return lemmatizer.lemmatize(''.join(term_modified), 'v')
-    elif term == 'VBG':
-        return lemmatizer.lemmatize(''.join(term_modified), 'v')
-    elif term == 'VBD':
+    if term == 'VBZ' or term == 'VBP' or term == 'VBN' or term == 'VBG' or term == 'VBD':
         return lemmatizer.lemmatize(''.join(term_modified), 'v')
     elif term == 'NNS':
         return singularize(''.join(term_modified))
