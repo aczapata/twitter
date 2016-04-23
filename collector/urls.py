@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^load/$', views.upload_file, name='load_tweets'),
     url(r'^load/upload_file$', views.upload_file, name='load_tweets'),
     url(r'^statistics/$', views.tweets_tokenize, name='statistics'),
+    url(r'^filter/$', views.filter, name='filter'),
     url(r'^statistics/geo/$', views.geo, name='geo'),
     url(r'^statistics/topic_tokenize/$', views.topic_filter, name='topic_filter'),
     url(r'^statistics/(?P<query>\D+)/$', views.topic_tokenize, name='ind_statistics'),

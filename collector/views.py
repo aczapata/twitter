@@ -49,7 +49,6 @@ negative_vocab = []
 tagged_vocab = []
 
 
-
 def load_words(file, vector=[]):
     f = open(file, 'r')
     for line in f:
@@ -70,6 +69,13 @@ def index(request):
     tweets_list = TwitterData.objects.all()
     context = {'tweets_list': tweets_list}
     return render(request, 'collector/index2.html', context)
+
+
+def filter(request):
+    if request.method == "POST":
+        #filters = request.POST[]
+        print "esta aqui"
+    return render(request, 'collector/filter.html')
 
 
 def analysis(tweets_list):
