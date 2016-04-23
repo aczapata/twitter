@@ -237,15 +237,12 @@ def tag_sentence(tweet, sentence, tag_with_lemmas=False):
                 total_sentiment = float(
                     tagged_vocab[tagged_vocab_words.index(sentence[i + 1][0])].split('\t')[1]) * -1
                 i += 1
-        if sentence[i][1] == 'NNS':
-            check = singularize(''.join(sentence[i][0]))
-        if transform(''.join(sentence[i][1])):
-            check = lemmatizer.lemmatize(''.join(sentence[i][0]), 'v')
+        check = transform(sentence[i][1], sentence[i][0])
         if check in tagged_vocab_words:
             total_sentiment += float(
                 tagged_vocab[tagged_vocab_words.index(check)].split('\t')[1])
         i += 1
-    print tweet.content + ";" + sentiment(total_sentiment)
+    print "Estoy analizando por aqui "
     tag_sentence.append(tweet.content + ";" + sentiment(total_sentiment))
     return tag_sentence
 
@@ -259,19 +256,21 @@ def sentiment(value):
         return "neutral"
 
 
-def transform(term):
+def transform(term,term_modified):
     if term == 'VBZ':
-        return True
+        return lemmatizer.lemmatize(''.join(term_modified), 'v')
     elif term == 'VBP':
-        return True
+        return lemmatizer.lemmatize(''.join(term_modified), 'v')
     elif term == 'VBN':
-        return True
+        return lemmatizer.lemmatize(''.join(term_modified), 'v')
     elif term == 'VBG':
-        return True
+        return lemmatizer.lemmatize(''.join(term_modified), 'v')
     elif term == 'VBD':
-        return True
+        return lemmatizer.lemmatize(''.join(term_modified), 'v')
+    elif term == 'NNS':
+        return singularize(''.join(term_modified))
     else:
-        return False
+        return term
 
 
 def tagged_words(terms):
