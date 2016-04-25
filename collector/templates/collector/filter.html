@@ -2,157 +2,177 @@
 {% load staticfiles %}
 {% block title %}Twitter Elections{% endblock %}
 {% block banner %}
-	<div class="row">
-		<div class="col s3 no-padding">
-			<ul class="side-nav static-nav fixed grey lighten-3">
-        <form action="" method="post">
-        {% csrf_token %}
-          	<ul class="collapsible collapsible-accordion">
-	            <li class="bold"><a class="collapsible-header  waves-effect ">Parties</a>
-	              <div class="collapsible-body">
-	                <ul>
-	                	<li><p>
-	                		{{ form.dp }}
-	                		<label for="{{ form.dp.id_for_label }}">Democratic Party</label>
-	                		</p>
-	                	</li>
-	                	<li><p>
-	                		{{ form.rp }}
-	                		<label for="{{ form.rp.id_for_label }}">Republican Party</label>
-	                		</p>
-	                	</li>
-	                </ul>
-	              </div>
-	            </li>
-	            <li class="bold"><a class="collapsible-header  waves-effect ">Candidates</a>
-	              <div class="collapsible-body">
-	                <ul>
-	                	<li><p>
-	                		{{ form.dt }}
-	                		<label for="{{ form.dt.id_for_label }}">Donald Trump</label>
-	                		</p>
-	                	</li>
-	                	<li><p>
-	                		{{ form.hc }}
-	                		<label for="{{ form.hc.id_for_label }}">Hillary Clinton</label>
-	                		</p>
-	                	</li><li><p>
-	                		{{ form.mr }}
-	                		<label for="{{ form.mr.id_for_label }}">Marco Rubio</label>
-	                		</p>
-	                	</li><li><p>
-	                		{{ form.tc }}
-	                		<label for="{{ form.tc.id_for_label }}">Ted Cruz</label>
-	                		</p>
-	                	</li><li><p>
-	                		{{ form.bs }}
-	                		<label for="{{ form.bs.id_for_label }}">Bernie Sanders</label>
-	                		</p>
-	                	</li>
-	                </ul>
-	              </div>
-	            </li>
-	            <li class="bold"><a class="collapsible-header  waves-effect ">Events</a>
-	              <div class="collapsible-body">
-	                <ul>
-	                	<li><p>
-	                		{{ form.st }}
-	                		<label for="{{ form.st.id_for_label }}">Super Tuesday</label>
-	                		</p>
-	                	</li>
-	                	<li><p>
-	                		{{ form.fp }}
-	                		<label for="{{ form.fp.id_for_label }}">Florida Primaries</label>
-	                		</p>
-	                	</li><li><p>
-	                		{{ form.dd }}
-	                		<label for="{{ form.dd.id_for_label }}">Democratic Debate</label>
-	                		</p>
-	                	</li><li><p>
-	                		{{ form.rd }}
-	                		<label for="{{ form.rd.id_for_label }}">Republican Debate</label>
-	                		</p>
-	                	</li>
-	                </ul>
-	              </div>
-	            </li>
-	            <li class="bold" >
-	            	<button type="submit" class="save btn btn-default"> Filter </button>
-	            </li>
-        	</ul>
-        	</form>
-        	</ul>
-		</div>
-		<div class="col s9">
-			<h1> Results</h1>
-<h1>All terms</h1>
-	<ul>
-	{% for term, n in count_all %}
-	    <li>{{ term }}: {{n}}</li>
-	{% endfor %}
-	</ul>
+<div class="row">
+		<aside class="col s5 l3 reset-padding">
+			<div class="header">
+				<p><i class="icon-filter"></i> Filters</p>
+			</div>
+			<form action="" method="post">
+        		{% csrf_token %}
+				<ul class="collapsible collapsible-accordion reset-margin">
+					<li><a class="collapsible-header waves-effect black-text">Parties</a>
+					   <div class="collapsible-body">
+					       <ul>
+						       	<li>
+						       		<p>
+						       		{{ form.dp }}
+						       		<label for="{{ form.dp.id_for_label }}">Democratic Party</label>
+						            </p>
+						        </li>
+						        <li>
+						        	<p>
+						            {{ form.rp }}
+						            <label for="{{ form.rp.id_for_label }}">Republican Party</label>
+						        	</p>
+						        </li>
+					        </ul>
+					    </div>
+					</li>
+					<li><a class="collapsible-header  waves-effect black-text">Candidates</a>
+						<div class="collapsible-body">
+					  		<ul>
+					  			<li>
+					  				<p>
+					  				{{ form.dt }}
+					  				<label for="{{ form.dt.id_for_label }}">Donald Trump</label>
+					  				</p>
+					  			</li>
+					  			<li>
+					  				<p>
+					                {{ form.hc }}
+					                <label for="{{ form.hc.id_for_label }}">Hillary Clinton</label>
+					                </p>
+					            </li>
+					            <li>
+					            	<p>
+					                {{ form.mr }}
+					                <label for="{{ form.mr.id_for_label }}">Marco Rubio</label>
+					                </p>
+					            </li>
+					            <li>
+					            	<p>
+					                {{ form.tc }}
+					                <label for="{{ form.tc.id_for_label }}">Ted Cruz</label>
+					                </p>
+					            </li>
+					            <li>
+					            	<p>
+					                {{ form.bs }}
+					                <label for="{{ form.bs.id_for_label }}">Bernie Sanders</label>
+					                </p>
+					            </li>
+					        </ul>
+					    </div>
+					</li>
+					<li><a class="collapsible-header  waves-effect black-text">Events</a>
+						<div class="collapsible-body">
+					  		<ul>
+					  			<li>
+					  				<p>
+					  				{{ form.st }}
+					  				<label for="{{ form.st.id_for_label }}">Super Tuesday</label>
+					  				</p>
+					            </li>
+					            <li>
+					            	<p>
+					                {{ form.fp }}
+					                <label for="{{ form.fp.id_for_label }}">Florida Primaries</label>
+					                </p>
+					            </li>
+					            <li>
+					            	<p>
+					                {{ form.dd }}
+					                <label for="{{ form.dd.id_for_label }}">Democratic Debate</label>
+					                </p>
+					                </li>
+					            <li>
+					            	<p>
+					                {{ form.rd }}
+					                <label for="{{ form.rd.id_for_label }}">Republican Debate</label>
+					                </p>
+					            </li>
+					        </ul>
+					    </div>
+					</li>
+					<li class="bold btn-filter">
+					    <button type="submit" class="save btn btn-default"> Filter </button>
+					</li>
+				</ul>
+			</form>
+		</aside>
+		<div class="col s7 l9">
+			<div class="col s12 filters">
+				{% if filled_form.dp.value %}
+				<div class="chip">
+				    <img src="{% static 'collector/images/DemocraticLogo.png' %}" alt="Contact Person">
+				    Democratic Party
+				 </div>
+				 {% endif%}
+				 {% if filled_form.rp.value %}
+				 <div class="chip">
+				    <img src="{% static 'collector/images/RepublicanLogo.png' %}" alt="Contact Person">
+				    Republican Party
+				 </div>
+				 {% endif%}
+				 {% if filled_form.dt.value %}
+				 <div class="chip">
+				    <img src="{% static 'collector/images/donald-trump.png' %}" alt="Contact Person">
+				    Donald Trump
+				 </div>
+				 {% endif%}
+				 {% if filled_form.hc.value %}
+				 <div class="chip">
+				    <img src="{% static 'collector/images/hillary-clinton.png' %}" alt="Contact Person">
+				    Hillary Clinton
+				 </div>
+				 {% endif%}
+				 {% if filled_form.mr.value %}
+				 <div class="chip">
+				    <img src="{% static 'collector/images/marco-rubio.png' %}" alt="Contact Person">
+				    Marco Rubio
+				 </div>
+				 {% endif%}
+				 {% if filled_form.tc.value %}
+				 <div class="chip">
+				    <img src="{% static 'collector/images/ted-cruz.png' %}" alt="Contact Person">
+				    Ted Cruz
+				 </div>
+				 {% endif%}
+				 {% if filled_form.bs.value %}
+				 <div class="chip">
+				    <img src="{% static 'collector/images/bernie-sanders.png' %}" alt="Contact Person">
+				    Bernie Sanders
+				 </div>
+				 {% endif%}
+			</div>
+			<div class="col s12">
+			    <div class="col s12 m6 l4">
+		          <div class="card light-blue">
+		            <div class="card-content center white-text">
+		              <span class="card-title "><i class="icon-twitter"></i> Tweets </span>
+		                   <h4 >{{ tweets_number}}</h4>
+		            </div>
+		          </div>
+		        </div>
 
-	<h1> Hashtags</h1>
-	<ul>
-	{% for term,n in count_hash%}
-	    <li>{{ term }} : {{n}}</li>
-	{% endfor %}
-	</ul>
+		        <div class="col s12 m6 l4">
+		          <div class="card purple">
+		            <div class="card-content center white-text">
+		              <span class="card-title"><strong>#</strong> Hashtags </span>
+		              <h4>{{ hashtags_number}}</h4>
+		            </div>
+		          </div>
+		        </div>
 
-	<h1> Users</h1>
-	<ul>
-	{% for term,n in count_user%}
-	    <li>{{ term }} : {{n}}</li>
-	{% endfor %}
-	</ul>
-
-	<h1>Except Hashtags</h1>
-	<ul>
-	{% for term,n in count_only%}
-	    <li>{{ term }} : {{n}}</li>
-	{% endfor %}
-	</ul>
-
-	<h1>Bigrams</h1>
-	<ul>
-	{% for term, n in count_bigrams%}
-	    <li>{{ term }} : {{n}}</li>
-	{% endfor %}
-	</ul>
-
-	<h1> Single</h1>
-	<ul>
-	{% for term,n in count_single%}
-	    <li>{{ term }} : {{n}}</li>
-	{% endfor %}
-	</ul>
-
-	<h1> Stop single</h1>
-	<ul>
-	{% for term,n in count_stop_single%}
-	    <li>{{ term }} : {{n}}</li>
-	{% endfor %}
-	</ul>
-
-	<h1>Terms Max</h1>
-	<ul>
-	{% for term, n in terms_max%}
-	    <li>{{ term }} : {{n}}</li>
-	{% endfor %}
-	</ul>
-
-	<h2>Positive </h2>
-	<ul>
-	{% for term in top_pos%}
-	    <li>{{ term }}</li>
-	{% endfor %}
-	</ul>
-	<h2>Negative</h2>
-	<ul>
-	{% for term in top_neg%}
-	    <li>{{ term }}</li>
-	{% endfor %}
-	</ul>
+		        <div class="col s12 m6 l4">
+		          <div class="card teal">
+		            <div class="card-content center white-text">
+		              <span class="card-title"> <i class="icon-user"></i> Users </span>
+		              <h4>{{ users_number}}</h4>
+		            </div>
+		          </div>
+		        </div>
+		    </div>
 		</div>
 	</div>
 

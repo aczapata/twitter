@@ -127,16 +127,26 @@ def filter(request):
             filters.setdefault('dd', form.cleaned_data['dd'])
             filters.setdefault('rd', form.cleaned_data['rd'])
 
-            context = analysis(apply_filters(filters))
+            #analysis(apply_filters(filters))
+            filled_form = FilterForm(request.POST)
             form = FilterForm()
-            context.update({'form': form})
+            file = open("json_data", "r")
+            json_data = file.readline()
+            context = json.loads(json_data)
+            context.update({'form': form , 'filled_form': filled_form})
             return render(request, 'collector/filter.html', context)
         else:
             print form.errors
 
     else:
+        #analysis(TwitterData.objects.all())
         form = FilterForm()
-    return render(request, 'collector/filter.html', {'form':form})
+        filled_form = form
+        file = open("json_data", "r")
+        json_data = file.readline()
+        context = json.loads(json_data)
+        context.update({'form': form, 'filled_form': filled_form})
+    return render(request, 'collector/filter.html', context)
 
 
 def analysis(tweets_list):
@@ -249,35 +259,26 @@ def analysis(tweets_list):
     top_neg = semantic_sorted[-10:]
 
     terms_max = sorted(com_max, key=operator.itemgetter(1), reverse=True)[:10]
-    count_all = count_all.most_common(10)
-    count_hash = count_hash.most_common(10)
-    count_user = count_user.most_common(10)
-    count_only = count_only.most_common(10)
-    count_single = count_single.most_common(10)
-    count_stop_single = count_stop_single.most_common(10)
-    count_bigrams = count_bigrams.most_common(10)
-
     y_axis_total = []
 
     y_axis_total.append(positive)
     y_axis_total.append(negative)
     y_axis_total.append(neutral)
-    print lexicon_tag
+    #print lexicon_tag
     x_axis = ['positive', 'negative', 'neutral']
     #plot_sen = graph_plot(x_axis, y_axis_total, "Sentiment", 'pie')
 
     x = list(Counter(terms_lang))
     y = Counter(terms_lang).values()
     #plot_lan = graph_plot(x, y, "Languages", 'bar')
-    context = {'tweets_list': tweets_list,
-               #'plot_sen': plot_sen, 'plot_lan': plot_lan,
-               'count_all': count_all,
-               'count_hash': count_hash, 'count_user': count_user,
-               'count_bigrams': count_bigrams,
-               'count_stop_single': count_stop_single,
-               'terms_max': terms_max, 'p_t_max_terms': p_t_max_terms,
-               'top_pos': top_pos, 'top_neg': top_neg}
-    return context
+    context_json = {
+               # 'plot_sen': plot_sen, 'plot_lan': plot_lan,
+               'tweets_number': len(tweets_list),
+               'hashtags_number': len(list(count_hash)),
+               'users_number': len(list(count_user)),
+               }
+    file = open("json_data", "w")
+    json.dump(context_json, file)
 
 
 def tag_sentence(tweet, sentence, tag_with_lemmas=False):
@@ -309,15 +310,15 @@ def tag_sentence(tweet, sentence, tag_with_lemmas=False):
 
 
 def sentiment(value):
-    if value > 1:
+    if value > 1.0:
         return "positive"
-    elif value < -1:
+    elif value < -1.0:
         return "negative"
     else:
         return "neutral"
 
 
-def transform(term,term_modified):
+def transform(term, term_modified):
     if term == 'VBZ' or term == 'VBP' or term == 'VBN' or term == 'VBG' or term == 'VBD':
         return lemmatizer.lemmatize(''.join(term_modified), 'v')
     elif term == 'NNS':
@@ -329,16 +330,18 @@ def transform(term,term_modified):
 def tagged_words(terms):
     POS = [pos_tag(terms) for term in terms]
     POS = [[(word, word, [postag]) for (word, postag) in term] for term in POS]
-
     return POS
 
 
 def tweets_tokenize(request):
     tweets_list = TwitterData.objects.all()
     form = SearchForm
-    context = analysis(tweets_list)
+    analysis(tweets_list)
+    file = open("json_data", "r")
+    json_data = file.readline()
+    context = json.loads(json_data)
     context.update({'form': form})
-    return render(request, 'collector/statistics.html', context)
+    return render(request, 'collector/filter.html', context)
 
 
 def topic_filter(request):
