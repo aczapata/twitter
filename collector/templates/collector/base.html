@@ -8,7 +8,7 @@
   <title>{% block title %}{% endblock %}</title>
 
   <!-- CSS  -->
-  <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link href="{% static 'collector/css/materialize.css' %}" type="text/css" rel="stylesheet" media="screen,projection"/>
   <link href="{% static 'collector/css/style.css?version=1.2.4' %}" type="text/css" rel="stylesheet" media="screen,projection"/>
@@ -45,8 +45,8 @@
           <h5 class="white-text">Settings</h5>
           <ul>
             <li><a class="white-text" href="{% url 'collector:load_tweets' %}"> Load Tweets</a></li>
-            <li><a class="white-text" href="{% url 'collector:filter' %}">Link 2</a></li>
-            <li><a class="white-text" href="#!">Link 3</a></li>
+            <li><a class="white-text" href="{% url 'collector:filter' %}">Filters</a></li>
+            <li><a class="white-text" href="{% url 'collector:list' %}">List</a></li>
             <li><a class="white-text" href="#!">Link 4</a></li>
           </ul>
         </div>

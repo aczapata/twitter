@@ -78,6 +78,11 @@ def index(request):
     context = {'tweets_list': tweets_list}
     return render(request, 'collector/index2.html', context)
 
+def list(request):
+    tweets_list = TwitterData.objects.all()
+    context = {'tweets_list': tweets_list}
+    return render(request, 'collector/index.html', context)
+
 
 def apply_filters(filters):
     filtered_data = Q()
@@ -153,6 +158,7 @@ def analysis(tweets_list):
     count_all = Counter()
     count_hash = Counter()
     count_user = Counter()
+    count_owner = Counter()
     count_only = Counter()
     count_bigrams = Counter()
     count_single = Counter()
@@ -161,12 +167,13 @@ def analysis(tweets_list):
     count_negative = Counter()
     com = defaultdict(lambda: defaultdict(int))
     terms_lang = []
+    terms_owner = []
     positive = 0
     negative = 0
     neutral = 0
     SWN = sentlex.SWN3Lexicon()
     classifier = sentlex.sentanalysis.BasicDocSentiScore()
-
+    print len(tweets_list)
     for tweet in tweets_list:
         # Create a list with all the terms
         punctuation = list(string.punctuation)
@@ -178,6 +185,7 @@ def analysis(tweets_list):
         terms_stop = [term for term in terms_all if term not in stop]
         terms_positive = [term for term in terms_all if term in positive_vocab]
         terms_negative = [term for term in terms_all if term in negative_vocab]
+        terms_owner.append(tweet.tweet_user)
         if tweet.lang == 'en':
             dict_tagged_sentences = [
                 tag for tag in tag_sentence(tweet, nltk.pos_tag(preprocess(tweet.content)))]
@@ -271,11 +279,13 @@ def analysis(tweets_list):
     x = list(Counter(terms_lang))
     y = Counter(terms_lang).values()
     #plot_lan = graph_plot(x, y, "Languages", 'bar')
+    count_owner.update(terms_owner)
     context_json = {
                # 'plot_sen': plot_sen, 'plot_lan': plot_lan,
                'tweets_number': len(tweets_list),
                'hashtags_number': len(list(count_hash)),
                'users_number': len(list(count_user)),
+               'owners_number': len(list(count_owner)),
                }
     file = open("json_data", "w")
     json.dump(context_json, file)
