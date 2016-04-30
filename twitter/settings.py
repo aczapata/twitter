@@ -6,7 +6,6 @@ import djcelery
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
-
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
 STATIC_URL = '/static/'
 STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
@@ -15,6 +14,7 @@ STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 STATICFILES_DIRS = (
     os.path.join(PROJECT_ROOT, 'static'),
 )
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
@@ -51,6 +51,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 )
+
 
 ROOT_URLCONF = 'twitter.urls'
 

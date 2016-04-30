@@ -26,6 +26,7 @@ from .forms import UploadFileForm, SearchForm, FilterForm
 from django.db.models import Q
 from collector.tasks import load_file_task
 from pattern.en import singularize
+from nvd3 import pieChart
 
 tls.set_credentials_file(username='melissaam', api_key='oghjiijwta')
 
@@ -78,6 +79,22 @@ def index(request):
     tweets_list = TwitterData.objects.all()
     context = {'tweets_list': tweets_list}
     return render(request, 'collector/index2.html', context)
+
+def function_to_graph(x_axis, y_axis):
+    type = 'pieChart'
+    chart = pieChart(name=type, color_category='category20c', height=450, width=450)
+    chart.set_containerheader("\n\n<h2>" + type + "</h2>\n\n")
+
+    xdata = x_axis
+    ydata = y_axis
+
+    extra_serie = {"tooltip": {"y_start": "", "y_end": " cal"}}
+    chart.add_serie(y=ydata, x=xdata, extra=extra_serie)
+    chart.buildcontent()
+    print "va por aqui"
+    print chart.htmlcontent
+    return chart.htmlcontent
+
 
 def list_tweets(request):
     tweets_list = TwitterData.objects.all()
@@ -139,7 +156,10 @@ def filter(request):
             file = open("json_data", "r")
             json_data = file.readline()
             context = json.loads(json_data)
-            context.update({'form': form , 'filled_form': filled_form})
+            x = context['x_axis_language']
+            y = context['y_axis_language']
+            graph_languages = function_to_graph(x, y)
+            context.update({'form': form , 'filled_form': filled_form, 'graph_languages': graph_languages})
             return render(request, 'collector/filter.html', context)
         else:
             print form.errors
@@ -150,8 +170,12 @@ def filter(request):
         filled_form = form
         file = open("json_data", "r")
         json_data = file.readline()
+        print json_data
         context = json.loads(json_data)
-        context.update({'form': form, 'filled_form': filled_form})
+        x = context['x_axis_language']
+        y = context['y_axis_language']
+        graph_languages = function_to_graph(x, y)
+        context.update({'form': form , 'filled_form': filled_form, 'graph_languages': graph_languages})
     return render(request, 'collector/filter.html', context)
 
 def tag_tweets(tweets_list):
@@ -185,6 +209,8 @@ def analysis(tweets_list):
     positive = 0
     negative = 0
     neutral = 0
+    x = 0
+    y = 0
     SWN = sentlex.SWN3Lexicon()
     classifier = sentlex.sentanalysis.BasicDocSentiScore()
     print len(tweets_list)
@@ -299,6 +325,8 @@ def analysis(tweets_list):
                'hashtags_number': len(list(count_hash)),
                'users_number': len(list(count_user)),
                'owners_number': len(list(count_owner)),
+               'x_axis_language': x,
+               'y_axis_language': y,
                }
     file = open("json_data", "w")
     json.dump(context_json, file)
@@ -310,7 +338,10 @@ def tag_sentence_format(tweet, sentence, tag_with_lemmas=False):
         lexicons techniques like singularize and transforms
         verbs in order to punctuate a sentence base on the SO-cal dictionary.
         We have to study and look for ways to improve the results based on lexicons
+
     """
+
+
     tag_sentence = []
     total_sentiment = 0
     N = len(sentence)
@@ -320,17 +351,20 @@ def tag_sentence_format(tweet, sentence, tag_with_lemmas=False):
         check = sentence[i][0]
         tagged_vocab_words = [j.split('\t')[0] for j in tagged_vocab]
         if sentence[i][0] == 'not' and i != N-1 :
-            if sentence[i + 1][0] in tagged_vocab_words:
-                total_sentiment = float(
-                    tagged_vocab[tagged_vocab_words.index(sentence[i + 1][0])].split('\t')[1]) * -1
-                i += 1
-        check = transform(sentence[i][1], sentence[i][0])
-        if check in tagged_vocab_words:
-            terms.append(check)
-            total_sentiment += float(
-                tagged_vocab[tagged_vocab_words.index(check)].split('\t')[1])
+            check = transform(sentence[i + 1][1], sentence[i + 1][0])
+            if check in tagged_vocab_words:
+                    terms.append(check)
+                    total_sentiment += float(
+                    tagged_vocab[tagged_vocab_words.index(check)].split('\t')[1]) * -1
+                    i += 1
+        else:
+            check = transform(sentence[i][1], sentence[i][0])
+            if check in tagged_vocab_words:
+                terms.append(check)
+                total_sentiment += float(
+                    tagged_vocab[tagged_vocab_words.index(check)].split('\t')[1])
         i += 1
-    t =  (terms , sentiment(total_sentiment))
+    t= (terms, sentiment(total_sentiment))
     return t
 
 
@@ -351,14 +385,12 @@ def tag_sentence(tweet, sentence, tag_with_lemmas=False):
         if sentence[i][0] == 'not' and i != N-1 :
             check = transform(sentence[i + 1][1], sentence[i + 1][0])
             if check in tagged_vocab_words:
-                print check
                 total_sentiment += float(
                     tagged_vocab[tagged_vocab_words.index(check)].split('\t')[1]) * -1
                 i += 1
         else:
             check = transform(sentence[i][1], sentence[i][0])
             if check in tagged_vocab_words:
-                print check
                 total_sentiment += float(
                     tagged_vocab[tagged_vocab_words.index(check)].split('\t')[1])
         i += 1
@@ -367,9 +399,9 @@ def tag_sentence(tweet, sentence, tag_with_lemmas=False):
 
 
 def sentiment(value):
-    if value > 1.0:
+    if value > 0.5:
         return "positive"
-    elif value < -1.0:
+    elif value < -0.5:
         return "negative"
     else:
         return "neutral"

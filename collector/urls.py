@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^list/$', views.list_tweets, name='list'),
     url(r'^bayes/$', views.bayes_classifier, name='bayes'),
     url(r'^load/$', views.upload_file, name='load_tweets'),
+    url(r'^plot/$', views.function_to_graph, name='plot'),
     url(r'^load/upload_file$', views.upload_file, name='load_tweets'),
     url(r'^statistics/$', views.tweets_tokenize, name='statistics'),
     url(r'^filter/$', views.filter, name='filter'),
