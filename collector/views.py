@@ -56,7 +56,6 @@ regex_str = [
 positive_vocab = []
 negative_vocab = []
 tagged_vocab = []
-lexicon_tag = []
 word_features = []
 
 def load_words(file, vector=[]):
@@ -182,6 +181,7 @@ def analysis(tweets_list):
     com = defaultdict(lambda: defaultdict(int))
     terms_lang = []
     terms_owner = []
+    lexicon_tag = []
     positive = 0
     negative = 0
     neutral = 0
@@ -286,7 +286,6 @@ def analysis(tweets_list):
     y_axis_total.append(positive)
     y_axis_total.append(negative)
     y_axis_total.append(neutral)
-    #print lexicon_tag
     x_axis = ['positive', 'negative', 'neutral']
     #plot_sen = graph_plot(x_axis, y_axis_total, "Sentiment", 'pie')
 
@@ -350,17 +349,21 @@ def tag_sentence(tweet, sentence, tag_with_lemmas=False):
         check = sentence[i][0]
         tagged_vocab_words = [j.split('\t')[0] for j in tagged_vocab]
         if sentence[i][0] == 'not' and i != N-1 :
-            if sentence[i + 1][0] in tagged_vocab_words:
-                total_sentiment = float(
-                    tagged_vocab[tagged_vocab_words.index(sentence[i + 1][0])].split('\t')[1]) * -1
+            check = transform(sentence[i + 1][1], sentence[i + 1][0])
+            if check in tagged_vocab_words:
+                print check
+                total_sentiment += float(
+                    tagged_vocab[tagged_vocab_words.index(check)].split('\t')[1]) * -1
                 i += 1
-        check = transform(sentence[i][1], sentence[i][0])
-        if check in tagged_vocab_words:
-            total_sentiment += float(
-                tagged_vocab[tagged_vocab_words.index(check)].split('\t')[1])
+        else:
+            check = transform(sentence[i][1], sentence[i][0])
+            if check in tagged_vocab_words:
+                print check
+                total_sentiment += float(
+                    tagged_vocab[tagged_vocab_words.index(check)].split('\t')[1])
         i += 1
-    tag_sentence.append(tweet.content + ";" + sentiment(total_sentiment))
-    return tag_sentence
+    t= (tweet.content, sentiment(total_sentiment))
+    return t
 
 
 def sentiment(value):
@@ -378,7 +381,7 @@ def transform(term, term_modified):
     elif term == 'NNS':
         return singularize(''.join(term_modified))
     else:
-        return term
+        return term_modified
 
 
 def tagged_words(terms):
@@ -532,8 +535,9 @@ def lexicon_tweet(tweet):
 def tweet_tokenize(request, tweet_id):
 
     tweet = get_object_or_404(TwitterData, pk=tweet_id)
+    analyze_tweet = tag_sentence(tweet, nltk.pos_tag(preprocess(tweet.content.lower())))
     context = lexicon_tweet(tweet)
-    context.update({'tweet': tweet})
+    context.update({'tweet': tweet, 'analyze_tweet': analyze_tweet[1]})
     return render(request, 'collector/tokenize.html', context)
 
 
