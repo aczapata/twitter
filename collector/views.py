@@ -57,7 +57,11 @@ regex_str = [
 positive_vocab = []
 negative_vocab = []
 tagged_vocab = []
+
 word_features = []
+
+punctuation = list(string.punctuation)
+stop = stopwords.words('english') + punctuation + ['rt', 'RT', 'via']
 
 def load_words(file, vector=[]):
     f = open(file, 'r')
@@ -100,7 +104,6 @@ def list_tweets(request):
     tweets_list = TwitterData.objects.all()
     context = {'tweets_list': tweets_list}
     return render(request, 'collector/index.html', context)
-
 
 def apply_filters(filters):
     filtered_data = Q()
@@ -184,25 +187,21 @@ def tag_tweets(tweets_list):
     for tweet in tweets_list:
         if tweet.lang == 'en':
             dict_tagged_sentences = [
-                tag for tag in tag_sentence_format(tweet, nltk.pos_tag(preprocess(tweet.content)))]
+                tag for tag in tag_sentence(tweet, nltk.pos_tag(preprocess(tweet.content)))]
             if dict_tagged_sentences[1] != 'neutral':
-                tagged_tweets.append(dict_tagged_sentences)
+                terms_stop = [term for term in preprocess(tweet.content) if term not in stop]
+                t = (terms_stop, dict_tagged_sentences[1])
+                tagged_tweets.append(t)
             else:
                 not_tagged_tweets.append(tweet.content)
     return { 'tagged_tweets':tagged_tweets, 'not_tagged_tweets':not_tagged_tweets}
 
 def analysis(tweets_list):
-    count_all = Counter()
+
     count_hash = Counter()
     count_user = Counter()
     count_owner = Counter()
-    count_only = Counter()
-    count_bigrams = Counter()
-    count_single = Counter()
-    count_stop_single = Counter()
-    count_positive = Counter()
-    count_negative = Counter()
-    com = defaultdict(lambda: defaultdict(int))
+
     terms_lang = []
     terms_owner = []
     lexicon_tag = []
@@ -213,19 +212,18 @@ def analysis(tweets_list):
     y = 0
     SWN = sentlex.SWN3Lexicon()
     classifier = sentlex.sentanalysis.BasicDocSentiScore()
-    print len(tweets_list)
     for tweet in tweets_list:
         # Create a list with all the terms
-        punctuation = list(string.punctuation)
-        stop = stopwords.words('english') + punctuation + ['rt', 'RT', 'via']
+        terms_all = preprocess(tweet.content)
+        terms_stop = [term for term in terms_all if term not in stop]
 
-        terms_all = [term for term in preprocess(tweet.content)]
         terms_hash = [term for term in terms_all if term.startswith('#')]
         terms_user = [term for term in terms_all if term.startswith('@')]
-        terms_stop = [term for term in terms_all if term not in stop]
+        terms_owner.append(tweet.tweet_user)
+
         terms_positive = [term for term in terms_all if term in positive_vocab]
         terms_negative = [term for term in terms_all if term in negative_vocab]
-        terms_owner.append(tweet.tweet_user)
+
         if tweet.lang == 'en':
             dict_tagged_sentences = [
                 tag for tag in tag_sentence(tweet, nltk.pos_tag(preprocess(tweet.content)))]
@@ -249,78 +247,22 @@ def analysis(tweets_list):
         else:
             neutral += 1
 
-        terms_bigram = bigrams(terms_stop)
-        terms_stop_single = set(terms_stop)
-
-        count_all.update(terms_stop)
         count_hash.update(terms_hash)
         count_user.update(terms_user)
-        count_bigrams.update(terms_bigram)
-        count_stop_single.update(terms_stop_single)
-        count_positive.update(terms_positive)
-        count_negative.update(terms_negative)
 
-        for i in range(len(terms_stop) - 1):
-            for j in range(i + 1, len(terms_stop)):
-                w1, w2 = sorted([terms_stop[i], terms_stop[j]])
-                if w1 != w2:
-                    com[w1][w2] += 1
-                    com[w2][w1] += 1
-
-        com_max = []
-        # For each term, look for the most common co-occurrent terms
-        for t1 in com:
-            t1_max_terms = max(com[t1].items(), key=operator.itemgetter(1))[:5]
-            for t2 in t1_max_terms:
-                com_max.append(((t1, t2), com[t1][t2]))
-
-    p_t = {}
-    p_t_com = defaultdict(lambda: defaultdict(int))
-    n_docs = 95.0
-    for term, n in count_stop_single.items():
-        p_t[term] = n / n_docs
-        for t2 in com[term]:
-            p_t_com[term][t2] = com[term][t2] / n_docs
-
-    p_t_max_terms = max(p_t.items(), key=operator.itemgetter(1))[:5]
-
-    pmi = defaultdict(lambda: defaultdict(int))
-
-    for t1 in p_t:
-        for t2 in com[t1]:
-            try:
-                denom = p_t[t1] * p_t[t2]
-                if denom != 0:
-                    pmi[t1][t2] = math.log((p_t_com[t1][t2] / denom), 2)
-            except:
-                continue
-    semantic_orientation = {}
-    for term, n in p_t.items():
-        positive_assoc = sum(pmi[term][tx] for tx in positive_vocab)
-        negative_assoc = sum(pmi[term][tx] for tx in negative_vocab)
-        semantic_orientation[term] = positive_assoc - negative_assoc
-
-    semantic_sorted = sorted(
-        semantic_orientation.items(), key=operator.itemgetter(1), reverse=True)
-
-    top_pos = semantic_sorted[:10]
-    top_neg = semantic_sorted[-10:]
-
-    terms_max = sorted(com_max, key=operator.itemgetter(1), reverse=True)[:10]
+    print lexicon_tag
     y_axis_total = []
 
     y_axis_total.append(positive)
     y_axis_total.append(negative)
     y_axis_total.append(neutral)
     x_axis = ['positive', 'negative', 'neutral']
-    #plot_sen = graph_plot(x_axis, y_axis_total, "Sentiment", 'pie')
 
     x = list(Counter(terms_lang))
     y = Counter(terms_lang).values()
-    #plot_lan = graph_plot(x, y, "Languages", 'bar')
+
     count_owner.update(terms_owner)
     context_json = {
-               # 'plot_sen': plot_sen, 'plot_lan': plot_lan,
                'tweets_number': len(tweets_list),
                'hashtags_number': len(list(count_hash)),
                'users_number': len(list(count_user)),
@@ -332,49 +274,8 @@ def analysis(tweets_list):
     json.dump(context_json, file)
 
 
-def tag_sentence_format(tweet, sentence, tag_with_lemmas=False):
-    """
-        It choose a preprocess tweet, tokenized and apply some
-        lexicons techniques like singularize and transforms
-        verbs in order to punctuate a sentence base on the SO-cal dictionary.
-        We have to study and look for ways to improve the results based on lexicons
-
-    """
-
-
-    tag_sentence = []
-    total_sentiment = 0
-    N = len(sentence)
-    i = 0
-    terms = []
-    while i < N:
-        check = sentence[i][0]
-        tagged_vocab_words = [j.split('\t')[0] for j in tagged_vocab]
-        if sentence[i][0] == 'not' and i != N-1 :
-            check = transform(sentence[i + 1][1], sentence[i + 1][0])
-            if check in tagged_vocab_words:
-                    terms.append(check)
-                    total_sentiment += float(
-                    tagged_vocab[tagged_vocab_words.index(check)].split('\t')[1]) * -1
-                    i += 1
-        else:
-            check = transform(sentence[i][1], sentence[i][0])
-            if check in tagged_vocab_words:
-                terms.append(check)
-                total_sentiment += float(
-                    tagged_vocab[tagged_vocab_words.index(check)].split('\t')[1])
-        i += 1
-    t= (terms, sentiment(total_sentiment))
-    return t
-
-
 def tag_sentence(tweet, sentence, tag_with_lemmas=False):
-    """
-        It choose a preprocess tweet, tokenized and apply some
-        lexicons techniques like singularize and transforms
-        verbs in order to punctuate a sentence base on the SO-cal dictionary.
-        We have to study and look for ways to improve the results based on lexicons
-    """
+
     tag_sentence = []
     total_sentiment = 0
     N = len(sentence)
@@ -518,8 +419,10 @@ def bayes_classifier(request):
     tagged_data = tag_tweets(TwitterData.objects.all())
     tweets_list = tagged_data['tagged_tweets']
     not_tagged_tweets_list = tagged_data['not_tagged_tweets']
+    global word_features
     word_features = get_word_features(get_words_in_tweets(tweets_list))
     training_set = nltk.classify.apply_features(extract_features, tweets_list)
+    tweet = tweets_list[0]
     classifier = nltk.NaiveBayesClassifier.train(training_set)
     for tweet in not_tagged_tweets_list:
         print classifier.classify(extract_features(tweet.split()))
