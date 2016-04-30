@@ -1,0 +1,9 @@
+{% extends "collector/base.html" %}
+{% block title %}Twitter Elections{% endblock %}
+{% block content %}
+	{% for tweet in tweets_list%}
+		<p>{{ tweet}}</p>
+	{% endfor %}
+	<p>{{ word_features }}</p>
+	<p>{{ training_set }}</p>
+{% endblock %}

@@ -5,7 +5,8 @@ app_name = "collector"
 urlpatterns = [
     # Examples:
     url(r'^$', views.index, name='index'),
-    url(r'^list/$', views.list, name='list'),
+    url(r'^list/$', views.list_tweets, name='list'),
+    url(r'^bayes/$', views.bayes_classifier, name='bayes'),
     url(r'^load/$', views.upload_file, name='load_tweets'),
     url(r'^load/upload_file$', views.upload_file, name='load_tweets'),
     url(r'^statistics/$', views.tweets_tokenize, name='statistics'),

@@ -20,6 +20,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from nltk.corpus import stopwords
 from nltk import bigrams
 from nltk.tag import pos_tag
+from nltk.probability import ELEProbDist, FreqDist
+from nltk import NaiveBayesClassifier
 from .forms import UploadFileForm, SearchForm, FilterForm
 from django.db.models import Q
 from collector.tasks import load_file_task
@@ -55,7 +57,7 @@ positive_vocab = []
 negative_vocab = []
 tagged_vocab = []
 lexicon_tag = []
-
+word_features = []
 
 def load_words(file, vector=[]):
     f = open(file, 'r')
@@ -78,7 +80,7 @@ def index(request):
     context = {'tweets_list': tweets_list}
     return render(request, 'collector/index2.html', context)
 
-def list(request):
+def list_tweets(request):
     tweets_list = TwitterData.objects.all()
     context = {'tweets_list': tweets_list}
     return render(request, 'collector/index.html', context)
@@ -153,6 +155,18 @@ def filter(request):
         context.update({'form': form, 'filled_form': filled_form})
     return render(request, 'collector/filter.html', context)
 
+def tag_tweets(tweets_list):
+    tagged_tweets = []
+    not_tagged_tweets = []
+    for tweet in tweets_list:
+        if tweet.lang == 'en':
+            dict_tagged_sentences = [
+                tag for tag in tag_sentence_format(tweet, nltk.pos_tag(preprocess(tweet.content)))]
+            if dict_tagged_sentences[1] != 'neutral':
+                tagged_tweets.append(dict_tagged_sentences)
+            else:
+                not_tagged_tweets.append(tweet.content)
+    return { 'tagged_tweets':tagged_tweets, 'not_tagged_tweets':not_tagged_tweets}
 
 def analysis(tweets_list):
     count_all = Counter()
@@ -291,6 +305,36 @@ def analysis(tweets_list):
     json.dump(context_json, file)
 
 
+def tag_sentence_format(tweet, sentence, tag_with_lemmas=False):
+    """
+        It choose a preprocess tweet, tokenized and apply some
+        lexicons techniques like singularize and transforms
+        verbs in order to punctuate a sentence base on the SO-cal dictionary.
+        We have to study and look for ways to improve the results based on lexicons
+    """
+    tag_sentence = []
+    total_sentiment = 0
+    N = len(sentence)
+    i = 0
+    terms = []
+    while i < N:
+        check = sentence[i][0]
+        tagged_vocab_words = [j.split('\t')[0] for j in tagged_vocab]
+        if sentence[i][0] == 'not' and i != N-1 :
+            if sentence[i + 1][0] in tagged_vocab_words:
+                total_sentiment = float(
+                    tagged_vocab[tagged_vocab_words.index(sentence[i + 1][0])].split('\t')[1]) * -1
+                i += 1
+        check = transform(sentence[i][1], sentence[i][0])
+        if check in tagged_vocab_words:
+            terms.append(check)
+            total_sentiment += float(
+                tagged_vocab[tagged_vocab_words.index(check)].split('\t')[1])
+        i += 1
+    t =  (terms , sentiment(total_sentiment))
+    return t
+
+
 def tag_sentence(tweet, sentence, tag_with_lemmas=False):
     """
         It choose a preprocess tweet, tokenized and apply some
@@ -345,7 +389,7 @@ def tagged_words(terms):
 
 def tweets_tokenize(request):
     tweets_list = TwitterData.objects.all()
-    form = SearchForm
+    form = SearchForm()
     analysis(tweets_list)
     file = open("json_data", "r")
     json_data = file.readline()
@@ -435,6 +479,41 @@ def preprocess(s, lowercase=False):
             token) else token.lower() for token in tokens]
     return tokens
 
+def bayes_classifier(request):
+    tagged_data = tag_tweets(TwitterData.objects.all())
+    tweets_list = tagged_data['tagged_tweets']
+    not_tagged_tweets_list = tagged_data['not_tagged_tweets']
+    word_features = get_word_features(get_words_in_tweets(tweets_list))
+    training_set = nltk.classify.apply_features(extract_features, tweets_list)
+    classifier = nltk.NaiveBayesClassifier.train(training_set)
+    for tweet in not_tagged_tweets_list:
+        print classifier.classify(extract_features(tweet.split()))
+    context = {'tweets_list': tweets_list, 'word_features': word_features, 'training_set': training_set}
+    return render(request,'collector/bayes.html', context)
+
+
+def train(labeled_featuresets, estimator=ELEProbDist):
+    label_probdist = estimator(label_freqdist)
+    feature_probdist = {}
+    return NaiveBayesClassifier(label_probdist, feature_probdist)
+
+def get_words_in_tweets(tweets_list):
+    all_words = []
+    for (words, sentiment) in tweets_list:
+      all_words.extend(words)
+    return all_words
+
+def get_word_features(tweets_list):
+    wordlist = nltk.FreqDist(tweets_list)
+    word_features = wordlist.keys()
+    return word_features
+
+def extract_features(document):
+    document_words = set(document)
+    features = {}
+    for word in word_features:
+        features['contains(%s)' % word] = (word in document_words)
+    return features
 
 def lexicon_tweet(tweet):
     SWN = sentlex.SWN3Lexicon()
