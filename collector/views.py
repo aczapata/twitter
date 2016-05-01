@@ -5,9 +5,6 @@ import string
 import operator
 import math
 import nltk
-import plotly.plotly as py
-import plotly.graph_objs as go
-import plotly.tools as tls
 import sentlex
 import sentlex.sentanalysis
 import operator
@@ -28,7 +25,6 @@ from collector.tasks import load_file_task
 from pattern.en import singularize
 from nvd3 import pieChart
 
-tls.set_credentials_file(username='melissaam', api_key='oghjiijwta')
 
 # Variables
 lemmatizer = WordNetLemmatizer()
@@ -80,30 +76,26 @@ emoticon_re = re.compile(
 
 
 def index(request):
-    tweets_list = TwitterData.objects.all()
-    context = {'tweets_list': tweets_list}
-    return render(request, 'collector/index2.html', context)
-
-def function_to_graph(x_axis, y_axis):
-    type = 'pieChart'
-    chart = pieChart(name=type, color_category='category20c', height=450, width=450)
-    chart.set_containerheader("\n\n<h2>" + type + "</h2>\n\n")
-
-    xdata = x_axis
-    ydata = y_axis
-
-    extra_serie = {"tooltip": {"y_start": "", "y_end": " cal"}}
-    chart.add_serie(y=ydata, x=xdata, extra=extra_serie)
-    chart.buildcontent()
-    print "va por aqui"
-    print chart.htmlcontent
-    return chart.htmlcontent
-
+    return render(request, 'collector/index2.html')
 
 def list_tweets(request):
     tweets_list = TwitterData.objects.all()
     context = {'tweets_list': tweets_list}
     return render(request, 'collector/index.html', context)
+
+def function_to_graph(x_axis, y_axis, title):
+    type = 'pieChart'
+    chart = pieChart(name=title, color_category='category20c', height=450, width=450)
+    chart.set_containerheader("\n\n<h2>" + title + " Graph" + "</h2>\n\n")
+
+    xdata = x_axis
+    ydata = y_axis
+
+    extra_serie = {"tooltip": {"y_start": "", "y_end": "tweets"}}
+    chart.add_serie(y=ydata, x=xdata, extra=extra_serie)
+    chart.buildcontent()
+    return chart.htmlcontent
+
 
 def apply_filters(filters):
     filtered_data = Q()
@@ -132,7 +124,22 @@ def apply_filters(filters):
     tweets_list = TwitterData.objects.filter(filtered_data)
     return tweets_list
 
+
 def filter(request):
+    # analysis(TwitterData.objects.all())
+    form = FilterForm()
+    file = open("json_data", "r")
+    json_data = file.readline()
+    context = json.loads(json_data)
+
+    x = context['x_axis_language']
+    y = context['y_axis_language']
+    graph_languages = function_to_graph(x, y, 'language')
+
+    x1 = context['x_axis_sentiment']
+    y1 = context['y_axis_sentiment']
+    graph_sentiment = function_to_graph(x1, y1, 'sentiment')
+
     if request.method == "POST":
         form = FilterForm(request.POST)
         if form.is_valid():
@@ -155,46 +162,48 @@ def filter(request):
 
             #analysis(apply_filters(filters))
             filled_form = FilterForm(request.POST)
-            form = FilterForm()
-            file = open("json_data", "r")
-            json_data = file.readline()
-            context = json.loads(json_data)
-            x = context['x_axis_language']
-            y = context['y_axis_language']
-            graph_languages = function_to_graph(x, y)
-            context.update({'form': form , 'filled_form': filled_form, 'graph_languages': graph_languages})
+            context.update({'form': form , 'filled_form': filled_form, 'graph_languages': graph_languages, 'graph_sentiment': graph_sentiment})
             return render(request, 'collector/filter.html', context)
         else:
             print form.errors
 
     else:
-        #analysis(TwitterData.objects.all())
-        form = FilterForm()
+
         filled_form = form
-        file = open("json_data", "r")
-        json_data = file.readline()
-        print json_data
-        context = json.loads(json_data)
-        x = context['x_axis_language']
-        y = context['y_axis_language']
-        graph_languages = function_to_graph(x, y)
-        context.update({'form': form , 'filled_form': filled_form, 'graph_languages': graph_languages})
+        context.update({'form': form , 'filled_form': filled_form, 'graph_languages': graph_languages, 'graph_sentiment': graph_sentiment})
     return render(request, 'collector/filter.html', context)
 
-def tag_tweets(tweets_list):
-    tagged_tweets = []
-    not_tagged_tweets = []
+
+def tag_tweets_sentiment():
+    tweets_list = TwitterData.objects.all()
+    training_set = []
+    classify_set = []
     for tweet in tweets_list:
         if tweet.lang == 'en':
-            dict_tagged_sentences = [
-                tag for tag in tag_sentence(tweet, nltk.pos_tag(preprocess(tweet.content)))]
-            if dict_tagged_sentences[1] != 'neutral':
-                terms_stop = [term for term in preprocess(tweet.content) if term not in stop]
-                t = (terms_stop, dict_tagged_sentences[1])
-                tagged_tweets.append(t)
+            sentiment1 = tag_sentence(nltk.pos_tag(preprocess(tweet.content.lower())))
+            sentiment2 = lexicon_tweet(tweet.content.lower())
+            if sentiment1 == sentiment2:
+                tweet.tweet_sentiment = sentiment1
+                tweet.save()
+                terms_stop = [term for term in preprocess(tweet.content.lower()) if term not in stop]
+                t = (terms_stop, sentiment1)
+                training_set.append(t)
             else:
-                not_tagged_tweets.append(tweet.content)
-    return { 'tagged_tweets':tagged_tweets, 'not_tagged_tweets':not_tagged_tweets}
+                classify_set.append(tweet)
+    bayes_classifier(training_set, classify_set)
+
+
+def tag_tweet_sentiment(tweet):
+    if tweet.lang == 'en':
+            sentiment1 = tag_sentence(nltk.pos_tag(preprocess(tweet.content.lower())))
+            sentiment2 = lexicon_tweet(tweet.content.lower())
+            if sentiment1 == sentiment2:
+                tweet.tweet_sentiment = sentiment1
+                return tweet.tweet_sentiment
+            else:
+                return 'not_tagged'
+    else:
+        return 'no_english'
 
 def analysis(tweets_list):
 
@@ -204,14 +213,9 @@ def analysis(tweets_list):
 
     terms_lang = []
     terms_owner = []
-    lexicon_tag = []
-    positive = 0
-    negative = 0
-    neutral = 0
-    x = 0
-    y = 0
-    SWN = sentlex.SWN3Lexicon()
-    classifier = sentlex.sentanalysis.BasicDocSentiScore()
+    terms_sentiment =[]
+
+    # tag_tweets_sentiment()
     for tweet in tweets_list:
         # Create a list with all the terms
         terms_all = preprocess(tweet.content)
@@ -224,58 +228,39 @@ def analysis(tweets_list):
         terms_positive = [term for term in terms_all if term in positive_vocab]
         terms_negative = [term for term in terms_all if term in negative_vocab]
 
-        if tweet.lang == 'en':
-            dict_tagged_sentences = [
-                tag for tag in tag_sentence(tweet, nltk.pos_tag(preprocess(tweet.content)))]
-            lexicon_tag.append(dict_tagged_sentences)
-
         if tweet.lang is not None:
             terms_lang.append(tweet.lang)
 
-        classifier.classify_document(
-            tweet.content, tagged=False, L=SWN, a=True, v=True, n=True, r=False, negation=True, verbose=False)
-        results = classifier.resultdata
-        results_pos = results['resultpos']
-        results_neg = results['resultneg']
-        dif = abs(results_pos - results_neg)
-
-        if(dif > 0.02):
-            if(results_pos > results_neg):
-                positive += 1
-            else:
-                negative += 1
-        else:
-            neutral += 1
+        if tweet.lang == 'en':
+            terms_sentiment.append(tweet.tweet_sentiment)
 
         count_hash.update(terms_hash)
         count_user.update(terms_user)
 
-    print lexicon_tag
-    y_axis_total = []
-
-    y_axis_total.append(positive)
-    y_axis_total.append(negative)
-    y_axis_total.append(neutral)
-    x_axis = ['positive', 'negative', 'neutral']
-
-    x = list(Counter(terms_lang))
-    y = Counter(terms_lang).values()
-
     count_owner.update(terms_owner)
+
+    x_lang = list(Counter(terms_lang))
+    y_lang = Counter(terms_lang).values()
+    print terms_sentiment
+    x_sent = list(Counter(terms_sentiment))
+    y_sent = Counter(terms_sentiment).values()
+
+
     context_json = {
                'tweets_number': len(tweets_list),
                'hashtags_number': len(list(count_hash)),
                'users_number': len(list(count_user)),
                'owners_number': len(list(count_owner)),
-               'x_axis_language': x,
-               'y_axis_language': y,
+               'x_axis_language': x_lang,
+               'y_axis_language': y_lang,
+               'x_axis_sentiment': x_sent,
+               'y_axis_sentiment': y_sent,
                }
     file = open("json_data", "w")
     json.dump(context_json, file)
 
 
-def tag_sentence(tweet, sentence, tag_with_lemmas=False):
-
+def tag_sentence(sentence, tag_with_lemmas=False):
     tag_sentence = []
     total_sentiment = 0
     N = len(sentence)
@@ -295,17 +280,19 @@ def tag_sentence(tweet, sentence, tag_with_lemmas=False):
                 total_sentiment += float(
                     tagged_vocab[tagged_vocab_words.index(check)].split('\t')[1])
         i += 1
-    t= (tweet.content, sentiment(total_sentiment))
-    return t
+    return sentiment(total_sentiment)
 
 
 def sentiment(value):
-    if value > 0.5:
-        return "positive"
-    elif value < -0.5:
-        return "negative"
+    if value == 0:
+        return 'irrelevant'
     else:
-        return "neutral"
+        if value > 1.0:
+            return 'positive'
+        elif value < -1.0:
+            return 'negative'
+        else:
+            return 'neutral'
 
 
 def transform(term, term_modified):
@@ -322,6 +309,27 @@ def tagged_words(terms):
     POS = [[(word, word, [postag]) for (word, postag) in term] for term in POS]
     return POS
 
+def lexicon_tweet(tweet):
+    SWN = sentlex.SWN3Lexicon()
+    classifier = sentlex.sentanalysis.BasicDocSentiScore()
+    classifier.classify_document(
+        tweet, tagged=False, L=SWN, a=True, v=True, n=True, r=False, negation=True, verbose=False)
+    results = classifier.resultdata
+    results_pos = results['resultpos']
+    results_neg = results['resultneg']
+
+    if results_pos==0 and results_neg ==0:
+        sentiment = 'irrelevant'
+    else:
+        dif = abs(results_pos - results_neg)
+        if dif < 0.05:
+            sentiment = 'neutral'
+        else:
+            if results_pos > results_neg:
+                sentiment = 'positive'
+            else:
+                sentiment = 'negative'
+    return sentiment
 
 def tweets_tokenize(request):
     tweets_list = TwitterData.objects.all()
@@ -334,18 +342,6 @@ def tweets_tokenize(request):
     return render(request, 'collector/filter.html', context)
 
 
-def topic_filter(request):
-    query = request.POST['text']
-    return HttpResponseRedirect(
-        reverse('collector:ind_statistics', args=(query,)))
-
-
-def topic_tokenize(request, query):
-    tweets_list = TwitterData.objects.filter(content__icontains=query)
-    context = analysis(tweets_list)
-    return render(request, 'collector/individual_statistics.html', context)
-
-
 def geo(request):
     tweets_list = TwitterData.objects.filter(
         latitude__isnull=False, longitude__isnull=False)
@@ -353,29 +349,10 @@ def geo(request):
     return render(request, 'collector/geo.html', context)
 
 
-def graph_plot(x_axis, y_axis, name, graph_type):
-    # Using plotly to graph with x,y parameter bar diagram
-    if(graph_type is 'pie'):
-        trace = dict(labels=x_axis, values=y_axis)
-        data = [
-            go.Pie(
-                trace
-            )
-        ]
-    else:
-        trace = dict(x=x_axis, y=y_axis)
-        data = [
-            go.Bar(
-                trace
-            )
-        ]
-    plot = py.plot(data, filename=name, auto_open=False)
-    return plot
-
-
 def detail(request, tweet_id):
     tweet = get_object_or_404(TwitterData, pk=tweet_id)
-    return render(request, 'collector/detail.html', {'tweet': tweet})
+    sentiment = tag_tweet_sentiment(tweet)
+    return render(request, 'collector/detail.html', {'tweet': tweet, 'sentiment': sentiment})
 
 
 def vote(request, tweet_id):
@@ -415,19 +392,18 @@ def preprocess(s, lowercase=False):
             token) else token.lower() for token in tokens]
     return tokens
 
-def bayes_classifier(request):
-    tagged_data = tag_tweets(TwitterData.objects.all())
-    tweets_list = tagged_data['tagged_tweets']
-    not_tagged_tweets_list = tagged_data['not_tagged_tweets']
+def bayes_classifier(tagged_tweets, not_tagged_tweets):
+    tweets_list = tagged_tweets
     global word_features
     word_features = get_word_features(get_words_in_tweets(tweets_list))
     training_set = nltk.classify.apply_features(extract_features, tweets_list)
     tweet = tweets_list[0]
     classifier = nltk.NaiveBayesClassifier.train(training_set)
-    for tweet in not_tagged_tweets_list:
-        print classifier.classify(extract_features(tweet.split()))
-    context = {'tweets_list': tweets_list, 'word_features': word_features, 'training_set': training_set}
-    return render(request,'collector/bayes.html', context)
+    for tweet in not_tagged_tweets:
+        sentiment3 = classifier.classify(extract_features(tweet.content.split()))
+        tweet.tweet_sentiment = sentiment3
+        tweet.save()
+
 
 
 def train(labeled_featuresets, estimator=ELEProbDist):
@@ -453,26 +429,13 @@ def extract_features(document):
         features['contains(%s)' % word] = (word in document_words)
     return features
 
-def lexicon_tweet(tweet):
-    SWN = sentlex.SWN3Lexicon()
-    classifier = sentlex.sentanalysis.BasicDocSentiScore()
-    classifier.classify_document(
-        tweet.content, tagged=False, L=SWN, a=True, v=True, n=True, r=False, negation=True, verbose=False)
-    results = classifier.resultdata
-    results_pos = results['resultpos']
-    results_neg = results['resultneg']
-    dif = abs(results_pos - results_neg)
-    context = {'results': results, 'dif': dif,
-               'results_pos': results_pos, 'results_neg': results_neg}
-    return context
-
 
 def tweet_tokenize(request, tweet_id):
 
     tweet = get_object_or_404(TwitterData, pk=tweet_id)
-    analyze_tweet = tag_sentence(tweet, nltk.pos_tag(preprocess(tweet.content.lower())))
-    context = lexicon_tweet(tweet)
-    context.update({'tweet': tweet, 'analyze_tweet': analyze_tweet[1]})
+    analyze_tweet = tag_sentence(nltk.pos_tag(preprocess(tweet.content.lower())))
+    sentiment = lexicon_tweet(tweet.content.lower())
+    context = {'tweet': tweet, 'analyze_tweet': analyze_tweet, 'sentiment': sentiment}
     return render(request, 'collector/tokenize.html', context)
 
 

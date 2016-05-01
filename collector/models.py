@@ -15,6 +15,7 @@ class TwitterData(models.Model):
     date = models.DateTimeField(null=True, blank=True)
     tweet_user = models.CharField(max_length=300, null=True)
     user_location = models.CharField(max_length=300, null=True, blank=True)
+    tweet_sentiment = models.CharField(max_length=15, null=True, blank=True)
 
     def __unicode__(self):
         return "Id: " + self.tweet_id + "  Content: " + self.content

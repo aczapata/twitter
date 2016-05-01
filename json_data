@@ -1,1 +1,1 @@
-{"tweets_number": 95, "x_axis": ["en", "und", "es"], "owners_number": 95, "users_number": 103, "y_axis": [90, 1, 4], "hashtags_number": 35}
+{"owners_number": 95, "x_axis_language": ["en", "und", "es"], "y_axis_language": [90, 1, 4], "users_number": 103, "y_axis_sentiment": [69, 2, 19], "tweets_number": 95, "hashtags_number": 35, "x_axis_sentiment": ["positive", "irrelevant", "negative"]}
