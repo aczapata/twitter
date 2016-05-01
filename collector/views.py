@@ -2,22 +2,18 @@ import datetime
 import json
 import re
 import string
-import operator
-import math
 import nltk
 import sentlex
 import sentlex.sentanalysis
-import operator
 from nltk.stem import WordNetLemmatizer
-from collections import Counter, defaultdict
+from collections import Counter
 from django.shortcuts import render, get_object_or_404
 from .models import TwitterData, Sentiment
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from nltk.corpus import stopwords
-from nltk import bigrams
 from nltk.tag import pos_tag
-from nltk.probability import ELEProbDist, FreqDist
+from nltk.probability import ELEProbDist
 from nltk import NaiveBayesClassifier
 from .forms import UploadFileForm, SearchForm, FilterForm
 from django.db.models import Q
@@ -59,6 +55,13 @@ word_features = []
 punctuation = list(string.punctuation)
 stop = stopwords.words('english') + punctuation + ['rt', 'RT', 'via']
 
+
+tokens_re = re.compile(
+    r'(' + '|'.join(regex_str) + ')', re.VERBOSE | re.IGNORECASE)
+emoticon_re = re.compile(
+    r'^' + emoticons_str + '$', re.VERBOSE | re.IGNORECASE)
+
+
 def load_words(file, vector=[]):
     f = open(file, 'r')
     for line in f:
@@ -69,22 +72,17 @@ load_words("./static/negative-words.txt", negative_vocab)
 load_words("./static/tagged-words.txt", tagged_vocab)
 
 
-tokens_re = re.compile(
-    r'(' + '|'.join(regex_str) + ')', re.VERBOSE | re.IGNORECASE)
-emoticon_re = re.compile(
-    r'^' + emoticons_str + '$', re.VERBOSE | re.IGNORECASE)
-
-
 def index(request):
     return render(request, 'collector/index2.html')
+
 
 def list_tweets(request):
     tweets_list = TwitterData.objects.all()
     context = {'tweets_list': tweets_list}
     return render(request, 'collector/index.html', context)
 
+
 def function_to_graph(x_axis, y_axis, title):
-    type = 'pieChart'
     chart = pieChart(name=title, color_category='category20c', height=450, width=450)
 
     xdata = x_axis
@@ -125,7 +123,7 @@ def apply_filters(filters):
 
 
 def filter(request):
-    # analysis(TwitterData.objects.all())
+    analysis(TwitterData.objects.all())
     form = FilterForm()
     file = open("json_data", "r")
     json_data = file.readline()
@@ -204,6 +202,7 @@ def tag_tweet_sentiment(tweet):
     else:
         return 'no_english'
 
+
 def analysis(tweets_list):
 
     count_hash = Counter()
@@ -212,20 +211,16 @@ def analysis(tweets_list):
 
     terms_lang = []
     terms_owner = []
-    terms_sentiment =[]
+    terms_sentiment = []
 
     # tag_tweets_sentiment()
     for tweet in tweets_list:
         # Create a list with all the terms
         terms_all = preprocess(tweet.content)
-        terms_stop = [term for term in terms_all if term not in stop]
 
         terms_hash = [term for term in terms_all if term.startswith('#')]
         terms_user = [term for term in terms_all if term.startswith('@')]
         terms_owner.append(tweet.tweet_user)
-
-        terms_positive = [term for term in terms_all if term in positive_vocab]
-        terms_negative = [term for term in terms_all if term in negative_vocab]
 
         if tweet.lang is not None:
             terms_lang.append(tweet.lang)
@@ -240,34 +235,35 @@ def analysis(tweets_list):
 
     x_lang = list(Counter(terms_lang))
     y_lang = Counter(terms_lang).values()
-    print terms_sentiment
+
     x_sent = list(Counter(terms_sentiment))
     y_sent = Counter(terms_sentiment).values()
 
-
     context_json = {
-               'tweets_number': len(tweets_list),
-               'hashtags_number': len(list(count_hash)),
-               'users_number': len(list(count_user)),
-               'owners_number': len(list(count_owner)),
-               'x_axis_language': x_lang,
-               'y_axis_language': y_lang,
-               'x_axis_sentiment': x_sent,
-               'y_axis_sentiment': y_sent,
-               }
+                'tweets_number': len(tweets_list),
+                'hashtags_number': len(list(count_hash)),
+                'users_number': len(list(count_user)),
+                'owners_number': len(list(count_owner)),
+                'x_axis_language': x_lang,
+                'y_axis_language': y_lang,
+                'x_axis_sentiment': x_sent,
+                'y_axis_sentiment': y_sent,
+                'top_hashtags': count_hash.most_common(5),
+                'top_users': count_user.most_common(5),
+                'top_owners': count_owner.most_common(5),
+                }
     file = open("json_data", "w")
     json.dump(context_json, file)
 
 
 def tag_sentence(sentence, tag_with_lemmas=False):
-    tag_sentence = []
     total_sentiment = 0
     N = len(sentence)
     i = 0
     while i < N:
         check = sentence[i][0]
         tagged_vocab_words = [j.split('\t')[0] for j in tagged_vocab]
-        if sentence[i][0] == 'not' and i != N-1 :
+        if sentence[i][0] == 'not' and i != N - 1:
             check = transform(sentence[i + 1][1], sentence[i + 1][0])
             if check in tagged_vocab_words:
                 total_sentiment += float(
@@ -308,6 +304,7 @@ def tagged_words(terms):
     POS = [[(word, word, [postag]) for (word, postag) in term] for term in POS]
     return POS
 
+
 def lexicon_tweet(tweet):
     SWN = sentlex.SWN3Lexicon()
     classifier = sentlex.sentanalysis.BasicDocSentiScore()
@@ -317,7 +314,7 @@ def lexicon_tweet(tweet):
     results_pos = results['resultpos']
     results_neg = results['resultneg']
 
-    if results_pos==0 and results_neg ==0:
+    if results_pos == 0 and results_neg == 0:
         sentiment = 'irrelevant'
     else:
         dif = abs(results_pos - results_neg)
@@ -329,6 +326,7 @@ def lexicon_tweet(tweet):
             else:
                 sentiment = 'negative'
     return sentiment
+
 
 def tweets_tokenize(request):
     tweets_list = TwitterData.objects.all()
@@ -391,6 +389,7 @@ def preprocess(s, lowercase=False):
             token) else token.lower() for token in tokens]
     return tokens
 
+
 def bayes_classifier(tagged_tweets, not_tagged_tweets):
     tweets_list = tagged_tweets
     global word_features
@@ -404,22 +403,24 @@ def bayes_classifier(tagged_tweets, not_tagged_tweets):
         tweet.save()
 
 
-
 def train(labeled_featuresets, estimator=ELEProbDist):
     label_probdist = estimator(label_freqdist)
     feature_probdist = {}
     return NaiveBayesClassifier(label_probdist, feature_probdist)
 
+
 def get_words_in_tweets(tweets_list):
     all_words = []
     for (words, sentiment) in tweets_list:
-      all_words.extend(words)
+        all_words.extend(words)
     return all_words
+
 
 def get_word_features(tweets_list):
     wordlist = nltk.FreqDist(tweets_list)
     word_features = wordlist.keys()
     return word_features
+
 
 def extract_features(document):
     document_words = set(document)
