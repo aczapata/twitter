@@ -86,7 +86,6 @@ def list_tweets(request):
 def function_to_graph(x_axis, y_axis, title):
     type = 'pieChart'
     chart = pieChart(name=title, color_category='category20c', height=450, width=450)
-    chart.set_containerheader("\n\n<h2>" + title + " Graph" + "</h2>\n\n")
 
     xdata = x_axis
     ydata = y_axis

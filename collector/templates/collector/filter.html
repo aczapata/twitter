@@ -165,7 +165,7 @@
 		        </div>
 
 		        <div class="col s12 m6 l4">
-		          <div class="card teal">
+		          <div class="card pink">
 		            <div class="card-content center white-text">
 		              <span class="card-title"> <i class="fa fa-tags" aria-hidden="true"></i> Mentions </span>
 		              <h4>{{ users_number}}</h4>
@@ -173,7 +173,7 @@
 		          </div>
 		        </div>
 
-		        <div class="col s12 m6 l4">
+		        <div class="col s12 m6 l4 offset-l4">
 		          <div class="card teal">
 		            <div class="card-content center white-text">
 		              <span class="card-title"><i class="fa fa-users" aria-hidden="true"></i> Users </span>
@@ -181,9 +181,37 @@
 		            </div>
 		          </div>
 		        </div>
+			</div>
+			<div class="col s12">
+				<div class="col s12 m6">
+		        <div class="card">
+				    <div class="card-image waves-effect waves-block waves-light">
+				      {{graph_languages |safe}}
+				    </div>
+				    <div class="card-content">
+				      <span class="card-title activator grey-text text-darken-4">Languages<i class="material-icons right">more_vert</i></span>
+				    </div>
+				    <div class="card-reveal">
+				      <span class="card-title grey-text text-darken-4">Languages Description<i class="material-icons right">close</i></span>
+				      <p>Here is some more information about this product that is only revealed once clicked on.</p>
+				    </div>
+				</div>
+				</div>
+				<div class="card col s12 m6">
+				    <div class="card-image waves-effect waves-block waves-light">
+				      {{graph_sentiment |safe}}
+				    </div>
+				    <div class="card-content">
+				      <span class="card-title activator grey-text text-darken-4">Sentiment<i class="material-icons right">more_vert</i></span>
+				    </div>
+				    <div class="card-reveal">
+				      <span class="card-title grey-text text-darken-4">Sentiment<i class="material-icons right">close</i></span>
+				      <p>Here is some more information about this product that is only revealed once clicked on.</p>
+				    </div>
+				</div>
 		    </div>
 		</div>
-	</div>
+</div>
 
 <div> {{graph_languages |safe}} </div>
 <div> {{graph_sentiment |safe}} </div>
