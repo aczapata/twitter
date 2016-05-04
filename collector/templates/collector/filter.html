@@ -1,10 +1,10 @@
 {% extends "collector/base.html" %}
 {% load staticfiles %}
 {% block title %}Twitter Elections{% endblock %}
-{% block banner %}
+{% block content %}
 <div class="row blue-grey lighten-5">
 		<aside class="col s5 l3 reset-padding white">
-			<div class="header blue-grey darken-3 white-text">
+			<div class="header white black-text">
 				<h5><i class="fa fa-filter" aria-hidden="true"></i> Filters</h5>
 			</div>
 			<form action="" method="post">
@@ -94,7 +94,7 @@
 					        </ul>
 					    </div>
 					</li>
-					<li class="btn-filter blue-grey darken-3 white-text">
+					<li class="btn-filter white">
 					    <button type="submit" class="save btn btn-default light-blue"> Filter </button>
 					</li>
 				</ul>
@@ -192,7 +192,7 @@
 						{% for i,v in top_hashtags%}
 		    				<li class="collection-item avatar">
 		    					<p>{{i}}</p>
-		    					<a class="secondary-content" href="#">{{v}}</a>
+		    					<p class="secondary-content"> {{v}}</p>
 		    				</li>
 		    			{% endfor %}
 		    		</ul>
@@ -205,7 +205,7 @@
 						{% for i,v in top_users%}
 		    				<li class="collection-item avatar">
 		    					<p>{{i}}</p>
-		    					<a class="secondary-content" href="#">{{v}}</a>
+		    					<p class="secondary-content">{{v}}</p>
 		    				</li>
 		    			{% endfor %}
 		    		</ul>
@@ -218,7 +218,7 @@
 						{% for i,v in top_owners%}
 		    				<li class="collection-item avatar">
 		    					<p>{{i}}</p>
-		    					<a class="secondary-content" href="#">{{v}}</a>
+		    					<p class="secondary-content">{{v}}</p>
 		    				</li>
 		    			{% endfor %}
 		    		</ul>

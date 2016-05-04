@@ -9,7 +9,9 @@
 p {
   line-height: 2rem;
 }
-
+.results{
+  padding-top: 25%;
+}
 .collapsible-header.active:after {
     font-family: FontAwesome;
     content: "\f150";
@@ -49,15 +51,33 @@ p {
 .reset-padding{
   padding: 0!important;
 }
-.parallax-container {
-  min-height: 500px;
-  line-height: 0;
-  height: auto;
-  color: rgba(255,255,255,.9);
+
+.card-avatar .waves-effect {
+    text-align: center;
+    padding-top: 20px;
 }
-  .parallax-container .section {
-    width: 100%;
-  }
+
+.card-avatar img {
+    height: 150px;
+    width: 150px;
+    border-radius: 75px;
+}
+
+.card-avatar .card-content {
+    text-align: center;
+}
+
+.card .card-content p {
+    margin: 15px 0px;
+}
+
+.card-avatar .card-content i {
+   font-size: 1.5rem;
+}
+
+.card-avatar .card-content .card-title {
+    line-height: 30px !important;
+}
 
 @media only screen and (max-width : 992px) {
   .parallax-container .section {

@@ -73,13 +73,13 @@ load_words("./static/tagged-words.txt", tagged_vocab)
 
 
 def index(request):
-    return render(request, 'collector/index2.html')
+    return render(request, 'collector/index.html')
 
 
 def list_tweets(request):
     tweets_list = TwitterData.objects.all()
     context = {'tweets_list': tweets_list}
-    return render(request, 'collector/index.html', context)
+    return render(request, 'collector/list.html', context)
 
 
 def function_to_graph(x_axis, y_axis, title):
