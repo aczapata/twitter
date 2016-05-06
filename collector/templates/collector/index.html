@@ -12,6 +12,12 @@
 {% block content %}
 
 	<div id="index-banner" class="parallax-container">
+	<canvas id="canvas" width="1000" height="500"></canvas>
+  	<script type="text/javascript">
+
+    list = [ ['Ya', 140], ['Esta1', 128], ['1El', 172], ['Waord', 112], ['Closud', 130], ['Closud', 130], ['Claoud', 130], ['Clovud', 130], ['Clgoud', 130], ['Clofud', 130], ['Cxloud', 16], ['Andrea', 124]];
+    WordCloud(document.getElementById('canvas'), { list: list } );
+  	</script>
     <div class="parallax"><img src="{% static 'collector/images/word-cloud.png' %}" alt="banner"></div>
 	</div>
 <div class="container">

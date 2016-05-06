@@ -1,0 +1,59 @@
+{% extends "collector/base.html" %}
+{% block title %}Twitter Elections{% endblock %}
+{% block content %}
+{% load staticfiles %}
+
+<div id="index-banner" class="parallax-container">
+    <div class="parallax"><img src="{% static 'collector/images/sent_analysis_banner.jpg' %}" alt="banner"></div>
+</div>
+	<div class="container">
+
+		<h2 class="text center">Instructions:</h2>
+		<p>You will see a Tweet an four possible options to classify the sentiment in the content.</p>
+		<div class="row">
+			<div class="col s12">
+			    <div class="card ">
+			    	<div class="card-content">
+			        	<span class="card-title blue-text">Tweet:</span>
+			         	<p>LALALALALA</p>
+			       	</div>
+			    </div>
+		    </div>
+		    <div class="col s12 m6 l3 ">
+				<a class="btn waves-effect waves-light green"><i class="material-icons left">sentiment_satisfied</i>Positive</a>
+			</div>
+			<div class="col s12 m6 l3 ">
+				<a class="btn waves-effect waves-light red"><i class="material-icons left">sentiment_dissatisfied</i>Negative</a>
+			</div>
+			<div class="col s12 m6 l3 ">
+				<a class="btn waves-effect waves-light grey"><i class="material-icons left">sentiment_neutral</i>Neutral</a>
+			</div>
+			<div class="col s12 m6 l3 ">
+				<a class="btn waves-effect waves-light"><i class="material-icons left">sentiment_very_dissatisfied</i>Irrelevant</a>
+			</div>
+
+		<p>What represents each sentiment?</p>
+		<ul class="collapsible" data-collapsible="accordion">
+		  	<li>
+		  		<div class="collapsible-header green white-text"><i class="material-icons">sentiment_satisfied</i>Positive</div>
+		    	<div class="collapsible-body "><p>A positive sentiment is ...</p></div>
+			</li>
+			<li>
+				<div class="collapsible-header red white-text"><i class="material-icons">sentiment_dissatisfied</i>Negative</div>
+			    <div class="collapsible-body"><p>A negative sentiment is ...</p></div>
+			</li>
+			<li>
+				<div class="collapsible-header grey white-text"><i class="material-icons">sentiment_neutral</i>I can't decide</div>
+				<div class="collapsible-body"><p>A neutral sentiment is ...</p></div>
+			</li>
+			<li>
+				<div class="collapsible-header teal white-text"><i class="material-icons">sentiment_very_dissatisfied</i>Irrelevant</div>
+				<div class="collapsible-body"><p>An irrelevant tweet is ...</p></div>
+			</li>
+		</ul>
+			<div class="col s12 center">
+				<a class="btn btn-lg center light-blue" href="{% url 'collector:tweet_vote' %}">Continue</a>
+			</div>
+		</div>
+	</div>
+{% endblock %}

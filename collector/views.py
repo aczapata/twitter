@@ -5,6 +5,7 @@ import string
 import nltk
 import sentlex
 import sentlex.sentanalysis
+import random
 from nltk.stem import WordNetLemmatizer
 from collections import Counter
 from django.shortcuts import render, get_object_or_404
@@ -352,32 +353,6 @@ def detail(request, tweet_id):
     return render(request, 'collector/detail.html', {'tweet': tweet, 'sentiment': sentiment})
 
 
-def vote(request, tweet_id):
-    tweet = get_object_or_404(TwitterData, pk=tweet_id)
-    try:
-        selected_choice = tweet.sentiment_set.get(pk=request.POST['choice'])
-    except (KeyError, Sentiment.DoesNotExist):
-        # Redisplay the question voting form.
-        return render(request, 'collector/detail.html', {
-            'tweet': tweet,
-            'error_message': "You didn't select a choice.",
-        })
-    else:
-        selected_choice.votes += 1
-        selected_choice.save()
-
-        # Always return an HttpResponseRedirect after successfully dealing
-        # with POST data. This prevents data from being posted twice if a
-        # user hits the Back button.
-        return HttpResponseRedirect(
-            reverse('collector:results', args=(tweet.id,)))
-
-
-def results(request, tweet_id):
-    tweet = get_object_or_404(TwitterData, pk=tweet_id)
-    return render(request, 'collector/results.html', {'tweet': tweet})
-
-
 def tokenize(s):
     return tokens_re.findall(s)
 
@@ -437,6 +412,50 @@ def tweet_tokenize(request, tweet_id):
     sentiment = lexicon_tweet(tweet.content.lower())
     context = {'tweet': tweet, 'analyze_tweet': analyze_tweet, 'sentiment': sentiment}
     return render(request, 'collector/tokenize.html', context)
+
+
+def instructions(request):
+    return render(request, 'collector/instructions.html')
+
+
+def tweet_for_vote(request):
+    tweets_list = TwitterData.objects.all()
+    n = len(tweets_list)
+    t = random.randint(0, n)
+    tweet = tweets_list[t]
+    if len(tweet.sentiment_set.all()) == 0:
+        tweet.sentiment_set.create(sentiment_text="IRR")
+        tweet.sentiment_set.create(sentiment_text="UND")
+        tweet.sentiment_set.create(sentiment_text="NEG")
+        tweet.sentiment_set.create(sentiment_text="POS")
+
+    return render(request, 'collector/vote.html', {'tweet': tweet})
+
+
+def vote(request, tweet_id):
+    tweet = get_object_or_404(TwitterData, pk=tweet_id)
+    try:
+        selected_choice = tweet.sentiment_set.get(pk=request.POST['choice'])
+    except (KeyError, Sentiment.DoesNotExist):
+        # Redisplay the question voting form.
+        return render(request, 'collector/detail.html', {
+            'tweet': tweet,
+            'error_message': "You didn't select a choice.",
+        })
+    else:
+        selected_choice.votes += 1
+        selected_choice.save()
+
+        # Always return an HttpResponseRedirect after successfully dealing
+        # with POST data. This prevents data from being posted twice if a
+        # user hits the Back button.
+        return HttpResponseRedirect(
+            reverse('collector:results', args=(tweet.id,)))
+
+
+def results(request, tweet_id):
+    tweet = get_object_or_404(TwitterData, pk=tweet_id)
+    return render(request, 'collector/results.html', {'tweet': tweet})
 
 
 def load_tweets(tweets_file):
