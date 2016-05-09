@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^filter/$', views.filter, name='filter'),
     url(r'^instructions/$', views.instructions, name='instructions'),
     url(r'^tweet/$', views.tweet_for_vote, name='tweet_vote'),
+    url(r'^compare/op1:(?P<option1>[^/]+)/op2:(?P<option2>[^/]+)/ev:(?P<event>[^/]+)$', views.compare, name='compare'),
     url(r'^statistics/geo/$', views.geo, name='geo'),
     url(r'^(?P<tweet_id>[0-9]+)/$', views.detail, name='detail'),
     url(r'^(?P<tweet_id>[0-9]+)/results/$', views.results, name='results'),

@@ -27,6 +27,30 @@ class FilterForm(forms.Form):
     rd = forms.BooleanField(required=False)
     dd = forms.BooleanField(required=False)
 
+
+class CompareForm(forms.Form):
+    #Parties
+    options = ["Choice1", "Choice2", "Choice 3"]
+    choices_candidates = (
+        ('RP', 'Republican Party'),
+        ('DP', 'Democratic Party'),
+        ('DT', 'Donald Trump'),
+        ('HC', 'Hillary Clinton'),
+        ('BS', 'Bernie Sanders'),
+        ('MR', 'Marco Rubio'),
+        ('TC', 'Ted Cruz'),
+    )
+    choices_dates = (
+        ('AA', 'All'),
+        ('ST', 'Super Thursday'),
+        ('FP', 'Florida Primaries'),
+        ('RD', 'Republican Debate'),
+        ('DD', 'Democratic Debate'),
+    )
+    option1 = forms.ChoiceField(choices=choices_candidates)
+    option2 = forms.ChoiceField(choices=choices_candidates)
+    event = forms.ChoiceField(choices=choices_dates)
+
 class SearchForm(forms.Form):
     text = forms.CharField()
 """

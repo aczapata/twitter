@@ -28,7 +28,9 @@ p {
 .filters{
   padding-top:15px!important;
 }
-
+.compare-img{
+  width: 50%
+}
 .btn-filter{
   padding: 5px;
   text-align: right;

@@ -95,7 +95,7 @@
 					    </div>
 					</li>
 					<li class="btn-filter white">
-					    <button type="submit" class="save btn btn-default light-blue"> Filter </button>
+					    <button type="submit" name="filter" class="save btn btn-default light-blue"> Filter </button>
 					</li>
 				</ul>
 			</form>
@@ -148,11 +148,11 @@
 			<div class="col s12">
 			    <div class="col s12 m6 l6 offset-l3">
 		          <div class="card light-blue">
-		            <div class="card-content center white-text">
-		              <span class="card-title "><i class="fa fa-twitter" aria-hidden="true"></i> Tweets</span>
-		                   <h4 >{{ tweets_number}}</h4>
+		            	<div class="card-content center white-text">
+		              		<span class="card-title "><i class="fa fa-twitter" aria-hidden="true"></i> Tweets</span>
+		                   	<h4 >{{ tweets_number}}</h4>
+		                </div>
 		            </div>
-		          </div>
 		        </div>
 		    </div>
 		    <div class="col s12">
@@ -226,33 +226,66 @@
 		    </div>
 			<div class="col s12">
 				<div class="col s12 m6">
-		        <div class="card">
-				    <div class="card-image waves-effect waves-block waves-light">
-				      {{graph_languages |safe}}
-				    </div>
-				    <div class="card-content">
-				      <span class="card-title activator grey-text text-darken-4">Languages<i class="material-icons right">more_vert</i></span>
-				    </div>
-				    <div class="card-reveal">
-				      <span class="card-title grey-text text-darken-4">Languages Description<i class="material-icons right">close</i></span>
-				      <p>Here is some more information about this product that is only revealed once clicked on.</p>
-				    </div>
+			        <div class="card">
+					    <div class="card-image waves-effect waves-block waves-light">
+					      {{graph_languages |safe}}
+					    </div>
+					    <div class="card-content">
+					      <span class="card-title activator grey-text text-darken-4">Languages<i class="material-icons right">more_vert</i></span>
+					    </div>
+					    <div class="card-reveal">
+					      <span class="card-title grey-text text-darken-4">Languages Description<i class="material-icons right">close</i></span>
+					      <p>Here is some more information about this product that is only revealed once clicked on.</p>
+					    </div>
+					</div>
 				</div>
+				<div class="col s12 m6">
+					<div class="card">
+				    	<div class="card-image waves-effect waves-block waves-light">
+				      		{{graph_sentiment |safe}}
+				    	</div>
+					    <div class="card-content">
+					      <span class="card-title activator grey-text text-darken-4">Sentiment<i class="material-icons right">more_vert</i></span>
+					    </div>
+					    <div class="card-reveal">
+				      		<span class="card-title grey-text text-darken-4">Sentiment<i class="material-icons right">close</i></span>
+				      		<p>Here is some more information about this product that is only revealed once clicked on.</p>
+				    	</div>
+					</div>
 				</div>
-				<div class="card col s12 m6">
-				    <div class="card-image waves-effect waves-block waves-light">
-				      {{graph_sentiment |safe}}
-				    </div>
-				    <div class="card-content">
-				      <span class="card-title activator grey-text text-darken-4">Sentiment<i class="material-icons right">more_vert</i></span>
-				    </div>
-				    <div class="card-reveal">
-				      <span class="card-title grey-text text-darken-4">Sentiment<i class="material-icons right">close</i></span>
-				      <p>Here is some more information about this product that is only revealed once clicked on.</p>
-				    </div>
+				<div class="col s12 l6">
+		            <div class="card orange">
+		            	<div class="card-content center white-text">
+		              		<form action="" method="post">
+		              				<div class="col s12">
+		              				<span class="card-title">Compare Results:</span>
+							    	{% csrf_token %}
+							    	</div>
+							    	<div class="col s12 m6 l3">
+						       		<p>Option 1:</p>
+						            </div>
+						            <div class="col s12 m6 l9 input-field">
+						            {{  compare_form.option1 }}
+						            </div>
+						            <div class="col s12 m6 l3">
+						       		<p>Option 2:</p>
+						            </div>
+						            <div class="col s12 m6 l9 input-field">
+						            {{  compare_form.option2 }}
+						            </div>
+						            <div class="col s12 m6 l3">
+						       		<p>Event:</p>
+						       		</div>
+						            <div class="col s12 m6 l9 input-field">
+						            {{  compare_form.event }}
+						            </div>
+							    <button type="submit" name="compare" class="save btn btn-default light-blue"> Compare </button>
+					    	</form>
+						</div>
+					</div>
 				</div>
-		    </div>
+			</div>
 		</div>
-</div>
+	</div>
 
 {% endblock %}

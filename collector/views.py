@@ -16,7 +16,7 @@ from nltk.corpus import stopwords
 from nltk.tag import pos_tag
 from nltk.probability import ELEProbDist
 from nltk import NaiveBayesClassifier
-from .forms import UploadFileForm, SearchForm, FilterForm
+from .forms import UploadFileForm, SearchForm, FilterForm, CompareForm
 from django.db.models import Q
 from collector.tasks import load_file_task
 from pattern.en import singularize
@@ -126,6 +126,7 @@ def apply_filters(filters):
 def filter(request):
     analysis(TwitterData.objects.all())
     form = FilterForm()
+    compare_form = CompareForm()
     file = open("json_data", "r")
     json_data = file.readline()
     context = json.loads(json_data)
@@ -139,36 +140,48 @@ def filter(request):
     graph_sentiment = function_to_graph(x1, y1, 'sentiment')
 
     if request.method == "POST":
-        form = FilterForm(request.POST)
-        if form.is_valid():
-            # Parties
-            filters = {}
-            filters.setdefault('rp', form.cleaned_data['rp'])
-            filters.setdefault('dp', form.cleaned_data['dp'])
-            # Candidates
-            filters.setdefault('dt', form.cleaned_data['dt'])
-            filters.setdefault('hc', form.cleaned_data['hc'])
-            filters.setdefault('tc', form.cleaned_data['tc'])
-            filters.setdefault('mr', form.cleaned_data['mr'])
-            filters.setdefault('bs', form.cleaned_data['bs'])
+        if 'compare' in request.POST:
+            compare_form = CompareForm(request.POST)
+            if compare_form.is_valid():
+                option1 = compare_form.cleaned_data['option1']
+                option2 = compare_form.cleaned_data['option2']
+                event = compare_form.cleaned_data['event']
+                """
+                options.setdefault('option1', compare_form.cleaned_data['option1'])
+                options.setdefault('option2', compare_form.cleaned_data['option2'])
+                options.setdefault('event', compare_form.cleaned_data['event'])
+                """
+                return HttpResponseRedirect(reverse('collector:compare', args=(option1, option2, event)))
+        elif 'filter' in request.POST:
+            form = FilterForm(request.POST)
+            if form.is_valid():
+                # Parties
+                filters = {}
+                filters.setdefault('rp', form.cleaned_data['rp'])
+                filters.setdefault('dp', form.cleaned_data['dp'])
+                # Candidates
+                filters.setdefault('dt', form.cleaned_data['dt'])
+                filters.setdefault('hc', form.cleaned_data['hc'])
+                filters.setdefault('tc', form.cleaned_data['tc'])
+                filters.setdefault('mr', form.cleaned_data['mr'])
+                filters.setdefault('bs', form.cleaned_data['bs'])
 
-            # Events
-            filters.setdefault('st', form.cleaned_data['st'])
-            filters.setdefault('fp', form.cleaned_data['fp'])
-            filters.setdefault('dd', form.cleaned_data['dd'])
-            filters.setdefault('rd', form.cleaned_data['rd'])
+                # Events
+                filters.setdefault('st', form.cleaned_data['st'])
+                filters.setdefault('fp', form.cleaned_data['fp'])
+                filters.setdefault('dd', form.cleaned_data['dd'])
+                filters.setdefault('rd', form.cleaned_data['rd'])
 
-            #analysis(apply_filters(filters))
-            filled_form = FilterForm(request.POST)
-            context.update({'form': form , 'filled_form': filled_form, 'graph_languages': graph_languages, 'graph_sentiment': graph_sentiment})
-            return render(request, 'collector/filter.html', context)
-        else:
-            print form.errors
-
+                #analysis(apply_filters(filters))
+                filled_form = FilterForm(request.POST)
+                context.update({'form': form , 'filled_form': filled_form, 'compare_form': compare_form, 'graph_languages': graph_languages, 'graph_sentiment': graph_sentiment})
+                return render(request, 'collector/filter.html', context)
+            else:
+                print form.errors
     else:
 
         filled_form = form
-        context.update({'form': form , 'filled_form': filled_form, 'graph_languages': graph_languages, 'graph_sentiment': graph_sentiment})
+        context.update({'form': form , 'filled_form': filled_form, 'compare_form': compare_form,  'graph_languages': graph_languages, 'graph_sentiment': graph_sentiment})
     return render(request, 'collector/filter.html', context)
 
 
@@ -456,6 +469,23 @@ def vote(request, tweet_id):
 def results(request, tweet_id):
     tweet = get_object_or_404(TwitterData, pk=tweet_id)
     return render(request, 'collector/results.html', {'tweet': tweet})
+
+
+def compare_file(option,event):
+    return "json_data_" + option + "_" + event
+
+
+def compare(request, option1, option2, event):
+    file1 = open(compare_file(option1, event), "r")
+    context = {}
+    context1 = json.loads(file1.readline())
+    for a in context1:
+        context.setdefault("OP1_" + a, context1[a])
+    file2 = open(compare_file(option2, event), "r")
+    context2 = json.loads(file2.readline())
+    for a in context2:
+        context.setdefault("OP2_" + a, context2[a])
+    return render(request, 'collector/compare.html',context)
 
 
 def load_tweets(tweets_file):
