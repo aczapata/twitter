@@ -21,6 +21,5 @@ pytz==2016.3
 redis==2.10.5
 requests==2.9.1
 rq==0.5.6
-SentLex==0.1.6.post16.dev0
 six==1.10.0
 whitenoise==3.0
