@@ -356,6 +356,23 @@ def tweets_tokenize(request):
 def geo(request):
     tweets_list = TwitterData.objects.filter(
         latitude__isnull=False, longitude__isnull=False)
+    geo_data=[]
+    for tweet in tweets_list:
+        geo_json_feature = {
+           "type": "Feature",
+           "properties": {
+                "text": tweet.content,
+            },
+           "geometry": {
+                "type": "Point",
+                "coordinates": [float(tweet.longitude), float(tweet.latitude)],
+            },
+        }
+        geo_data.append(geo_json_feature)
+# Save geo data
+    with open('./collector/static/collector/geo_data.json', 'w') as fout:
+        fout.write(json.dumps(geo_data, indent=4))
+
     context = {'tweets_list': tweets_list}
     return render(request, 'collector/geo.html', context)
 
